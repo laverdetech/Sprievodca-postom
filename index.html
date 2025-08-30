@@ -76,6 +76,9 @@
             background-color: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(5px);
         }
+        #notification-fallback {
+            transition: opacity 0.5s, transform 0.5s;
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -95,6 +98,10 @@
         </div>
     </div>
 
+    <!-- Fallback pre notifikácie -->
+    <div id="notification-fallback" class="hidden fixed top-5 right-5 z-50 bg-green-600 text-white p-4 rounded-lg shadow-lg">
+        Gratulujeme! Dosiahli ste svoj cieľ pôstu.
+    </div>
 
     <!-- Hlavný obsah -->
     <div id="mainContent" class="hidden">
@@ -223,6 +230,7 @@
             const pauseBtn = document.getElementById('pauseBtn');
             const stopBtn = document.getElementById('stopBtn');
             const programsContainer = document.querySelector('#programs .grid');
+            const notificationFallback = document.getElementById('notification-fallback');
             
             // --- Modálne okno ---
             const safetyModal = document.getElementById('safetyModal');
@@ -236,32 +244,181 @@
 
             // --- Dáta programov ---
             const programsData = [
-                { id: 12, title: "12-hodinový pôst", desc: "Základný cyklus, ideálny pre začiatočníkov na adaptáciu tela.", icon: 'sunrise' },
-                { id: 16, title: "16-hodinový pôst", desc: "Populárna metóda 16/8, podporuje spaľovanie tukov. Štandardne predvolené.", icon: 'clock' },
-                { id: 24, title: "24-hodinový pôst", desc: "Aktivuje bunkovú obnovu (autofágiu) a hlbšiu ketózu.", icon: 'recycle' },
-                { id: 36, title: "36-hodinový pôst", desc: "Pre pokročilých, podporuje metabolický reset. Vyžaduje prípravu.", icon: 'zap' },
-                { id: 48, title: "48-hodinový pôst", desc: "Výrazne zlepšuje inzulínovú senzitivitu. Len so skúsenosťami.", icon: 'shield-check' },
-                { id: 72, title: "72-hodinový pôst", desc: "Maximálna autofágia. Vyžaduje lekársky dohľad a opatrný refeeding.", icon: 'gem' },
+                { id: 12, title: "12-hodinový pôst", desc: "Základný cyklus, ideálny pre začiatočníkov.", icon: 'sunrise' },
+                { id: 16, title: "16-hodinový pôst", desc: "Populárna metóda 16/8, podporuje spaľovanie tukov.", icon: 'clock' },
+                { id: 24, title: "24-hodinový pôst", desc: "Aktivuje bunkovú obnovu (autofágiu).", icon: 'recycle' },
+                { id: 36, title: "36-hodinový pôst", desc: "Pre pokročilých, podporuje metabolický reset.", icon: 'zap' },
+                { id: 48, title: "48-hodinový pôst", desc: "Zlepšuje inzulínovú senzitivitu. Len so skúsenosťami.", icon: 'shield-check' },
+                { id: 72, title: "72-hodinový pôst", desc: "Vyžaduje lekársky dohľad a opatrný refeeding.", icon: 'gem' },
             ];
 
             // --- Stav aplikácie ---
             let timerInterval;
-            let totalSeconds;
-            let secondsRemaining;
-            let selectedProgram = 16; // Predvolený program
-            let isPaused = false;
-            let isRunning = false;
+            let selectedProgram = 16;
             const radius = 45;
             const circumference = 2 * Math.PI * radius;
 
-            // --- Funkcie ---
+            // --- Notifikácie ---
+            function requestNotificationPermission() {
+                if ('Notification' in window && Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+            }
+
+            function showCompletionNotification(duration) {
+                const title = "Gratulujeme! Dosiahol si svoj cieľ pôstu";
+                const body = `Tvoj pôst trval ${duration} hodín. Je čas ho bezpečne ukončiť.`;
+
+                if ('Notification' in window && Notification.permission === 'granted') {
+                    new Notification(title, { body: body, icon: '/favicon.ico' });
+                } else {
+                    notificationFallback.textContent = title;
+                    notificationFallback.classList.remove('hidden');
+                    setTimeout(() => {
+                        notificationFallback.classList.add('hidden');
+                    }, 5000);
+                }
+            }
+
+            // --- Logika časovača s localStorage ---
+
+            function getFastState() {
+                return {
+                    state: localStorage.getItem('fastState') || 'stopped',
+                    startTime: parseInt(localStorage.getItem('fastStartTime') || '0'),
+                    pauseTime: parseInt(localStorage.getItem('fastPauseTime') || '0'),
+                    totalPausedMs: parseInt(localStorage.getItem('fastTotalPausedMs') || '0'),
+                    programHours: parseInt(localStorage.getItem('fastProgramHours') || '16'),
+                };
+            }
+
+            function setFastState(newState) {
+                const state = { ...getFastState(), ...newState };
+                localStorage.setItem('fastState', state.state);
+                localStorage.setItem('fastStartTime', state.startTime);
+                localStorage.setItem('fastPauseTime', state.pauseTime);
+                localStorage.setItem('fastTotalPausedMs', state.totalPausedMs);
+                localStorage.setItem('fastProgramHours', state.programHours);
+            }
+            
+            function clearFastState() {
+                localStorage.removeItem('fastState');
+                localStorage.removeItem('fastStartTime');
+                localStorage.removeItem('fastPauseTime');
+                localStorage.removeItem('fastTotalPausedMs');
+                localStorage.removeItem('fastProgramHours');
+            }
+
+            function tick() {
+                const { state, startTime, pauseTime, totalPausedMs, programHours } = getFastState();
+                
+                if (state !== 'running') return;
+
+                const totalDurationSec = programHours * 3600;
+                const elapsedMs = Date.now() - startTime - totalPausedMs;
+                const remainingSeconds = Math.max(0, totalDurationSec - Math.floor(elapsedMs / 1000));
+
+                updateDisplay(remainingSeconds, totalDurationSec);
+
+                if (remainingSeconds <= 0) {
+                    stopTimer(true);
+                    showCompletionNotification(programHours);
+                }
+            }
+            
+            function startTimer() {
+                requestNotificationPermission();
+                setFastState({
+                    state: 'running',
+                    startTime: Date.now(),
+                    pauseTime: 0,
+                    totalPausedMs: 0,
+                    programHours: selectedProgram
+                });
+                
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(tick, 1000);
+                
+                updateButtonUI('running');
+                tick();
+            }
+
+            function pauseTimer() {
+                const { state, pauseTime } = getFastState();
+
+                if (state === 'running') { // Pause
+                    setFastState({ state: 'paused', pauseTime: Date.now() });
+                    updateButtonUI('paused');
+                } else if (state === 'paused') { // Resume
+                    const pausedDuration = Date.now() - pauseTime;
+                    const { totalPausedMs } = getFastState();
+                    setFastState({
+                        state: 'running',
+                        pauseTime: 0,
+                        totalPausedMs: totalPausedMs + pausedDuration
+                    });
+                    updateButtonUI('running');
+                }
+                 updateStatusUI();
+            }
+            
+            function stopTimer(completed = false) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                
+                const { programHours } = getFastState();
+
+                if (completed) {
+                    fastStage.textContent = "Pôst dokončený!";
+                    adaptiveTip.textContent = "Skvelá práca! Nezabudnite na bezpečné ukončenie pôstu.";
+                } else {
+                    fastStage.textContent = "Pôst zastavený";
+                    adaptiveTip.textContent = "Každý krok sa počíta. Nabudúce to pôjde lepšie!";
+                }
+                
+                clearFastState();
+                updateButtonUI('stopped');
+
+                setTimeout(() => {
+                    resetUIToProgram(programHours);
+                }, 3000);
+            }
+            
+            function restoreTimerState() {
+                const { state } = getFastState();
+                if (state === 'running' || state === 'paused') {
+                    selectedProgram = getFastState().programHours;
+                    generateProgramCards();
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = setInterval(tick, 1000);
+                    updateButtonUI(state);
+                    updateStatusUI();
+                } else {
+                    resetUIToProgram(16);
+                }
+            }
+
+            // --- UI Funkcie ---
+            function updateButtonUI(state) {
+                startBtn.classList.toggle('hidden', state !== 'stopped');
+                pauseBtn.classList.toggle('hidden', state === 'stopped');
+                stopBtn.classList.toggle('hidden', state === 'stopped');
+
+                if (state === 'paused') {
+                    pauseBtn.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i>Pokračovať`;
+                } else {
+                    pauseBtn.innerHTML = `<i data-lucide="pause" class="w-5 h-5"></i>Pauza`;
+                }
+                lucide.createIcons();
+            }
 
             function generateProgramCards() {
                 programsContainer.innerHTML = '';
+                const { state } = getFastState();
                 programsData.forEach(p => {
                     const isSelected = p.id === selectedProgram;
                     const card = document.createElement('div');
-                    card.className = `program-card card rounded-xl p-6 cursor-pointer border-2 ${isSelected ? 'selected' : 'border-transparent'}`;
+                    card.className = `program-card card rounded-xl p-6 cursor-pointer border-2 ${isSelected ? 'selected' : 'border-transparent'} ${state !== 'stopped' ? 'opacity-50 cursor-not-allowed' : ''}`;
                     card.dataset.duration = p.id;
                     card.innerHTML = `
                         <div class="flex items-center gap-4 mb-3">
@@ -270,45 +427,49 @@
                         </div>
                         <p class="text-slate-400">${p.desc}</p>
                     `;
-                    card.addEventListener('click', () => selectProgram(p.id));
+                    card.addEventListener('click', () => {
+                        if (getFastState().state === 'stopped') {
+                            selectProgram(p.id)
+                        }
+                    });
                     programsContainer.appendChild(card);
                 });
                 lucide.createIcons();
             }
 
             function selectProgram(durationHours) {
-                if (isRunning) return; // Nedá sa meniť program počas behu
                 selectedProgram = durationHours;
-                totalSeconds = selectedProgram * 3600;
-                secondsRemaining = totalSeconds;
-                updateDisplay();
+                resetUIToProgram(durationHours);
                 generateProgramCards();
             }
 
-            function updateDisplay() {
+            function resetUIToProgram(programHours) {
+                const totalSeconds = programHours * 3600;
+                updateDisplay(totalSeconds, totalSeconds);
+            }
+
+            function updateDisplay(secondsRemaining, totalDurationSec) {
                 const hours = Math.floor(secondsRemaining / 3600);
                 const minutes = Math.floor((secondsRemaining % 3600) / 60);
                 const seconds = secondsRemaining % 60;
                 timeDisplay.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-                updateProgress();
-                updateStatus();
-            }
-
-            function updateProgress() {
-                const progress = (totalSeconds - secondsRemaining) / totalSeconds;
+                
+                const progress = (totalDurationSec - secondsRemaining) / totalDurationSec;
                 const offset = circumference * (1 - progress);
                 progressCircle.style.strokeDashoffset = offset;
-            }
 
-            function updateStatus() {
-                const hoursElapsed = (totalSeconds - secondsRemaining) / 3600;
+                updateStatusUI();
+            }
+            
+            function updateStatusUI() {
+                const { state, startTime, totalPausedMs, programHours } = getFastState();
+                const elapsedMs = Date.now() - startTime - totalPausedMs;
+                const hoursElapsed = elapsedMs / (1000 * 3600);
+                
                 let stage = "Pripravený na štart";
                 let tip = "Vyberte si program a stlačte štart.";
 
-                if (!isRunning && !isPaused) {
-                     stage = "Pripravený na štart";
-                     tip = "Vyberte si program a stlačte štart.";
-                } else if (isRunning || isPaused) {
+                if (state === 'running' || state === 'paused') {
                     if (hoursElapsed < 4) {
                         stage = "Trávenie";
                         tip = "Telo spracováva posledné jedlo. Hladina cukru je stabilná.";
@@ -329,71 +490,20 @@
                         tip = "Dosahujete maximálne benefity. Pri dlhých pôstoch je kľúčová opatrnosť.";
                     }
                 }
-
-                if(isPaused){
+                
+                if (state === 'paused'){
                     stage = "Pauza";
                 }
 
                 fastStage.textContent = stage;
                 adaptiveTip.textContent = tip;
             }
-            
-            function startTimer() {
-                if (isRunning) return;
-                isRunning = true;
-                isPaused = false;
-                
-                startBtn.classList.add('hidden');
-                pauseBtn.classList.remove('hidden');
-                stopBtn.classList.remove('hidden');
-
-                timerInterval = setInterval(() => {
-                    if (!isPaused) {
-                        secondsRemaining--;
-                        updateDisplay();
-                        if (secondsRemaining <= 0) {
-                            stopTimer(true); // Pôst dokončený
-                        }
-                    }
-                }, 1000);
-            }
-
-            function pauseTimer() {
-                isPaused = !isPaused;
-                pauseBtn.innerHTML = isPaused ? `<i data-lucide="play" class="w-5 h-5"></i>Pokračovať` : `<i data-lucide="pause" class="w-5 h-5"></i>Pauza`;
-                lucide.createIcons();
-                updateStatus();
-            }
-
-            function stopTimer(completed = false) {
-                clearInterval(timerInterval);
-                isRunning = false;
-                isPaused = false;
-                
-                startBtn.classList.remove('hidden');
-                pauseBtn.classList.add('hidden');
-                stopBtn.classList.add('hidden');
-                pauseBtn.innerHTML = `<i data-lucide="pause" class="w-5 h-5"></i>Pauza`;
-                lucide.createIcons();
-
-                if (completed) {
-                    fastStage.textContent = "Pôst dokončený!";
-                    adaptiveTip.textContent = "Skvelá práca! Nezabudnite na bezpečné ukončenie pôstu.";
-                } else {
-                     fastStage.textContent = "Pôst zastavený";
-                     adaptiveTip.textContent = "Každý krok sa počíta. Nabudúce to pôjde lepšie!";
-                }
-                
-                setTimeout(() => {
-                    selectProgram(selectedProgram); // Reset
-                }, 3000);
-            }
 
             // --- Inicializácia ---
             function init() {
                 progressCircle.style.strokeDasharray = circumference;
                 progressCircle.style.strokeDashoffset = circumference;
-                selectProgram(16);
+                restoreTimerState();
                 generateProgramCards();
             }
 
@@ -407,3 +517,4 @@
     </script>
 </body>
 </html>
+
