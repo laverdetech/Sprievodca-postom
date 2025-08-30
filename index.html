@@ -9,10 +9,6 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- React & Recharts knižnice -->
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.1.9/umd/Recharts.min.js"></script>
 
     <style>
         body {
@@ -82,23 +78,6 @@
         }
         #notification-fallback {
             transition: opacity 0.5s, transform 0.5s;
-        }
-        /* Štýly pre grafy */
-        #data-banner {
-            transition: all 0.3s ease-in-out;
-        }
-        #charts-panel {
-            transition: all 0.5s ease-in-out;
-            max-height: 0;
-            overflow: hidden;
-        }
-        #charts-panel.open {
-            max-height: 2000px; /* Dostatočne veľká hodnota */
-        }
-        .recharts-tooltip-wrapper {
-            background-color: #0F172A !important;
-            border: 1px solid #334155 !important;
-            border-radius: 0.5rem;
         }
     </style>
 </head>
@@ -179,43 +158,6 @@
                     </div>
                 </div>
             </section>
-            
-            <!-- Sekcia Dát a Grafov (Banner) -->
-            <section id="data-banner" class="hidden max-w-4xl mx-auto mb-16 cursor-pointer fade-in">
-                <div class="card rounded-2xl p-6 shadow-2xl">
-                    <div class="flex justify-between items-center">
-                        <div class="flex items-center gap-4">
-                            <i data-lucide="bar-chart-3" class="w-8 h-8 text-sky-400"></i>
-                            <div>
-                                <h2 class="text-2xl font-bold text-white">Vaše Telo Počas Pôstu</h2>
-                                <p class="text-slate-400">Kliknite pre zobrazenie detailných grafov</p>
-                            </div>
-                        </div>
-                        <i id="chevron-icon" data-lucide="chevron-down" class="w-6 h-6 text-slate-400 transition-transform"></i>
-                    </div>
-                    <div id="charts-panel" class="mt-6">
-                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                            <div class="card p-4 bg-slate-900/50">
-                                <h3 class="text-lg font-semibold text-white mb-2">Glykémia (mg/dL)</h3>
-                                <div id="glucose-chart" style="width: 100%; height: 250px;"></div>
-                            </div>
-                            <div class="card p-4 bg-slate-900/50">
-                                <h3 class="text-lg font-semibold text-white mb-2">Energia (Subjektívna)</h3>
-                                <div id="energy-chart" style="width: 100%; height: 250px;"></div>
-                            </div>
-                            <div class="card p-4 bg-slate-900/50">
-                               <h3 class="text-lg font-semibold text-white mb-2">Inzulín (μU/mL)</h3>
-                                <div id="insulin-chart" style="width: 100%; height: 250px;"></div>
-                            </div>
-                            <div class="card p-4 bg-slate-900/50">
-                                <h3 class="text-lg font-semibold text-white mb-2">Rastový Hormón (Index)</h3>
-                                <div id="hgh-chart" style="width: 100%; height: 250px;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
 
             <!-- Sekcia programov -->
             <section id="programs" class="max-w-6xl mx-auto mb-16 fade-in" style="animation-delay: 400ms;">
@@ -289,9 +231,6 @@
             const stopBtn = document.getElementById('stopBtn');
             const programsContainer = document.querySelector('#programs .grid');
             const notificationFallback = document.getElementById('notification-fallback');
-            const dataBanner = document.getElementById('data-banner');
-            const chartsPanel = document.getElementById('charts-panel');
-            const chevronIcon = document.getElementById('chevron-icon');
             
             // --- Modálne okno ---
             const safetyModal = document.getElementById('safetyModal');
@@ -306,88 +245,18 @@
             // --- Dáta programov ---
             const programsData = [
                 { id: 12, title: "12-hodinový pôst", desc: "Základný cyklus, ideálny pre začiatočníkov.", icon: 'sunrise' },
-                { id: 16, title: "16-hodinový pôst", desc: "Populárna metóda 16/8.", icon: 'clock' },
-                { id: 24, title: "24-hodinový pôst", desc: "Aktivuje bunkovú obnovu.", icon: 'recycle' },
+                { id: 16, title: "16-hodinový pôst", desc: "Populárna metóda 16/8, podporuje spaľovanie tukov.", icon: 'clock' },
+                { id: 24, title: "24-hodinový pôst", desc: "Aktivuje bunkovú obnovu (autofágiu).", icon: 'recycle' },
                 { id: 36, title: "36-hodinový pôst", desc: "Pre pokročilých, podporuje metabolický reset.", icon: 'zap' },
-                { id: 48, title: "48-hodinový pôst", desc: "Zlepšuje inzulínovú senzitivitu.", icon: 'shield-check' },
-                { id: 72, title: "72-hodinový pôst", desc: "Vyžaduje lekársky dohľad.", icon: 'gem' },
+                { id: 48, title: "48-hodinový pôst", desc: "Zlepšuje inzulínovú senzitivitu. Len so skúsenosťami.", icon: 'shield-check' },
+                { id: 72, title: "72-hodinový pôst", desc: "Vyžaduje lekársky dohľad a opatrný refeeding.", icon: 'gem' },
             ];
 
             // --- Stav aplikácie ---
             let timerInterval;
             let selectedProgram = 16;
-            let chartData = [];
-            let currentChartCursor = 0;
             const radius = 45;
             const circumference = 2 * Math.PI * radius;
-
-            // --- DÁTA A LOGIKA PRE GRAFY (z dokumentu) ---
-            const populationCurves = {
-                glucose: [{hours:0,median:92.5},{hours:1,median:90.1},{hours:12,median:85},{hours:24,median:78.3},{hours:48,median:74},{hours:72,median:73.5}],
-                energy: [{hours:0,median:1},{hours:18,median:0.8},{hours:36,median:0.85},{hours:72,median:0.9}],
-                insulin: [{hours:0,median:10.2},{hours:12,median:4.5},{hours:24,median:3.8},{hours:48,median:3.3},{hours:72,median:3.1}],
-                hgh: [{hours:0,median:1},{hours:12,median:1.5},{hours:24,median:5},{hours:36,median:10},{hours:48,median:15},{hours:72,median:12}]
-            };
-            const circadianCoeffs = { mesor: 1.0, amplitude: 0.05, acrophase: 14.5 };
-
-            function interpolate(points, hours) {
-                const p1 = points.filter(p => p.hours <= hours).pop() || points[0];
-                const p2 = points.filter(p => p.hours > hours)[0] || points[points.length - 1];
-                if (p1 === p2) return p1.median;
-                const ratio = (hours - p1.hours) / (p2.hours - p1.hours);
-                return p1.median + ratio * (p2.median - p1.median);
-            }
-
-            function circadianMultiplier(localHour) {
-                const { mesor, amplitude, acrophase } = circadianCoeffs;
-                return mesor + amplitude * Math.cos(((2 * Math.PI * localHour) / 24) - acrophase);
-            }
-
-            function generateChartData(fastDurationHours, startHour) {
-                const data = [];
-                for (let i = 0; i <= fastDurationHours; i++) {
-                    const localHour = (startHour + i) % 24;
-                    const multiplier = circadianMultiplier(localHour);
-                    data.push({
-                        hours: i,
-                        glukoza: (interpolate(populationCurves.glucose, i) * multiplier).toFixed(1),
-                        energia: (interpolate(populationCurves.energy, i) * multiplier).toFixed(2),
-                        inzulin: (interpolate(populationCurves.insulin, i) * multiplier).toFixed(1),
-                        hgh: (interpolate(populationCurves.hgh, i) / multiplier).toFixed(1), // HGH je často inverzný k inzulínu
-                    });
-                }
-                return data;
-            }
-
-            // --- Recharts vykresľovanie ---
-            const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } = Recharts;
-
-            function renderChart(containerId, data, dataKey, color, cursorPosition) {
-                const element = React.createElement(ResponsiveContainer, { width: "100%", height: 250 },
-                    React.createElement(LineChart, { data: data, margin: { top: 5, right: 20, left: -10, bottom: 20 } },
-                        React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "#334155" }),
-                        React.createElement(XAxis, { dataKey: "hours", stroke: "#94A3B8", tick: { fontSize: 12 }, label: { value: 'Hodiny Pôstu', position: 'insideBottom', offset: -10, fill: '#94A3B8' } }),
-                        React.createElement(YAxis, { stroke: "#94A3B8", tick: { fontSize: 12 }, domain: ['dataMin - 1', 'dataMax + 1'] }),
-                        React.createElement(Tooltip, {
-                            contentStyle: { backgroundColor: '#1E293B', border: '1px solid #334155' },
-                            labelStyle: { color: '#E2E8F0' },
-                            itemStyle: { color: color }
-                        }),
-                        React.createElement(Line, { type: "monotone", dataKey: dataKey, stroke: color, strokeWidth: 2, dot: false }),
-                        React.createElement(ReferenceLine, { x: cursorPosition, stroke: "#F87171", strokeWidth: 2, label: { value: 'Teraz', fill: '#F87171', position: 'insideTop' } })
-                    )
-                );
-                ReactDOM.render(element, document.getElementById(containerId));
-            }
-
-            function renderAllCharts(cursorPos) {
-                if(chartData.length === 0) return;
-                renderChart('glucose-chart', chartData, 'glukoza', '#38BDF8', cursorPos);
-                renderChart('energy-chart', chartData, 'energia', '#A78BFA', cursorPos);
-                renderChart('insulin-chart', chartData, 'inzulin', '#34D399', cursorPos);
-                renderChart('hgh-chart', chartData, 'hgh', '#FBBF24', cursorPos);
-            }
-
 
             // --- Notifikácie ---
             function requestNotificationPermission() {
@@ -420,7 +289,6 @@
                     pauseTime: parseInt(localStorage.getItem('fastPauseTime') || '0'),
                     totalPausedMs: parseInt(localStorage.getItem('fastTotalPausedMs') || '0'),
                     programHours: parseInt(localStorage.getItem('fastProgramHours') || '16'),
-                    startHour: parseInt(localStorage.getItem('fastStartHour') || '0'),
                 };
             }
 
@@ -431,7 +299,6 @@
                 localStorage.setItem('fastPauseTime', state.pauseTime);
                 localStorage.setItem('fastTotalPausedMs', state.totalPausedMs);
                 localStorage.setItem('fastProgramHours', state.programHours);
-                localStorage.setItem('fastStartHour', state.startHour);
             }
             
             function clearFastState() {
@@ -439,25 +306,19 @@
                 localStorage.removeItem('fastStartTime');
                 localStorage.removeItem('fastPauseTime');
                 localStorage.removeItem('fastTotalPausedMs');
-                // Nemažeme programHours a startHour, aby si pamätalo posledný výber
+                localStorage.removeItem('fastProgramHours');
             }
 
             function tick() {
-                const { state, startTime, totalPausedMs, programHours } = getFastState();
+                const { state, startTime, pauseTime, totalPausedMs, programHours } = getFastState();
                 
                 if (state !== 'running') return;
 
                 const totalDurationSec = programHours * 3600;
                 const elapsedMs = Date.now() - startTime - totalPausedMs;
-                const elapsedHours = elapsedMs / (1000 * 3600);
                 const remainingSeconds = Math.max(0, totalDurationSec - Math.floor(elapsedMs / 1000));
-                
-                currentChartCursor = elapsedHours;
-                
+
                 updateDisplay(remainingSeconds, totalDurationSec);
-                if (chartsPanel.classList.contains('open')) {
-                    renderAllCharts(currentChartCursor);
-                }
 
                 if (remainingSeconds <= 0) {
                     stopTimer(true);
@@ -467,25 +328,18 @@
             
             function startTimer() {
                 requestNotificationPermission();
-                const startHour = new Date().getHours();
-                selectedProgram = getFastState().programHours;
-
                 setFastState({
                     state: 'running',
                     startTime: Date.now(),
                     pauseTime: 0,
                     totalPausedMs: 0,
-                    startHour: startHour
+                    programHours: selectedProgram
                 });
-
-                chartData = generateChartData(selectedProgram, startHour);
-                dataBanner.classList.remove('hidden');
                 
                 if (timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(tick, 1000);
                 
                 updateButtonUI('running');
-                generateProgramCards();
                 tick();
             }
 
@@ -494,9 +348,7 @@
 
                 if (state === 'running') { // Pause
                     setFastState({ state: 'paused', pauseTime: Date.now() });
-                    if(timerInterval) clearInterval(timerInterval);
                     updateButtonUI('paused');
-                    updateStatusUI();
                 } else if (state === 'paused') { // Resume
                     const pausedDuration = Date.now() - pauseTime;
                     const { totalPausedMs } = getFastState();
@@ -505,20 +357,16 @@
                         pauseTime: 0,
                         totalPausedMs: totalPausedMs + pausedDuration
                     });
-                    if (timerInterval) clearInterval(timerInterval);
-                    timerInterval = setInterval(tick, 1000);
                     updateButtonUI('running');
                 }
+                 updateStatusUI();
             }
             
             function stopTimer(completed = false) {
-                if(timerInterval) clearInterval(timerInterval);
+                clearInterval(timerInterval);
                 timerInterval = null;
-                dataBanner.classList.add('hidden');
-                chartsPanel.classList.remove('open');
-                chevronIcon.classList.remove('rotate-180');
                 
-                const lastProgram = getFastState().programHours;
+                const { programHours } = getFastState();
 
                 if (completed) {
                     fastStage.textContent = "Pôst dokončený!";
@@ -529,34 +377,25 @@
                 }
                 
                 clearFastState();
-                setFastState({ state: 'stopped', programHours: lastProgram }); // Udrž posledný program
-                
                 updateButtonUI('stopped');
-                generateProgramCards();
 
                 setTimeout(() => {
-                    resetUIToProgram(lastProgram);
+                    resetUIToProgram(programHours);
                 }, 3000);
             }
             
             function restoreTimerState() {
-                const state = getFastState();
-                selectedProgram = state.programHours;
-
-                if (state.state === 'running' || state.state === 'paused') {
-                    chartData = generateChartData(state.programHours, state.startHour);
-                    dataBanner.classList.remove('hidden');
-                    
-                    if(state.state === 'running') {
-                       if (timerInterval) clearInterval(timerInterval);
-                       timerInterval = setInterval(tick, 1000);
-                    }
-                    tick();
+                const { state } = getFastState();
+                if (state === 'running' || state === 'paused') {
+                    selectedProgram = getFastState().programHours;
+                    generateProgramCards();
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = setInterval(tick, 1000);
+                    updateButtonUI(state);
+                    updateStatusUI();
                 } else {
-                    resetUIToProgram(selectedProgram);
+                    resetUIToProgram(16);
                 }
-                updateButtonUI(state.state);
-                generateProgramCards();
             }
 
             // --- UI Funkcie ---
@@ -574,7 +413,6 @@
             }
 
             function generateProgramCards() {
-                if (!programsContainer) return;
                 programsContainer.innerHTML = '';
                 const { state } = getFastState();
                 programsData.forEach(p => {
@@ -601,7 +439,6 @@
 
             function selectProgram(durationHours) {
                 selectedProgram = durationHours;
-                setFastState({ programHours: durationHours });
                 resetUIToProgram(durationHours);
                 generateProgramCards();
             }
@@ -617,7 +454,7 @@
                 const seconds = secondsRemaining % 60;
                 timeDisplay.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                 
-                const progress = totalDurationSec > 0 ? (totalDurationSec - secondsRemaining) / totalDurationSec : 0;
+                const progress = (totalDurationSec - secondsRemaining) / totalDurationSec;
                 const offset = circumference * (1 - progress);
                 progressCircle.style.strokeDashoffset = offset;
 
@@ -625,8 +462,8 @@
             }
             
             function updateStatusUI() {
-                const { state, startTime, totalPausedMs } = getFastState();
-                const elapsedMs = state !== 'stopped' ? Date.now() - startTime - totalPausedMs : 0;
+                const { state, startTime, totalPausedMs, programHours } = getFastState();
+                const elapsedMs = Date.now() - startTime - totalPausedMs;
                 const hoursElapsed = elapsedMs / (1000 * 3600);
                 
                 let stage = "Pripravený na štart";
@@ -647,10 +484,10 @@
                         tip = "Začína sa proces bunkovej obnovy. Gratulujeme!";
                     } else if (hoursElapsed < 48) {
                         stage = "Hlboká ketóza";
-                        tip = "Telo je v plnom režime spaľovania tukov.";
+                        tip = "Telo je v plnom režime spaľovania tukov. Sledujte príznaky a doplňte elektrolyty.";
                     } else {
                         stage = "Maximálna autofágia";
-                        tip = "Dosahujete maximálne benefity.";
+                        tip = "Dosahujete maximálne benefity. Pri dlhých pôstoch je kľúčová opatrnosť.";
                     }
                 }
                 
@@ -667,19 +504,13 @@
                 progressCircle.style.strokeDasharray = circumference;
                 progressCircle.style.strokeDashoffset = circumference;
                 restoreTimerState();
+                generateProgramCards();
             }
 
             // --- Event Listeners ---
             startBtn.addEventListener('click', startTimer);
             pauseBtn.addEventListener('click', pauseTimer);
             stopBtn.addEventListener('click', () => stopTimer(false));
-            dataBanner.addEventListener('click', () => {
-                const isOpen = chartsPanel.classList.toggle('open');
-                chevronIcon.classList.toggle('rotate-180');
-                if (isOpen) {
-                    renderAllCharts(currentChartCursor);
-                }
-            });
             
             init();
         });
