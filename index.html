@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="sk" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interaktívny Sprievodca Pôstom | Bezpečné Pôsty</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A; /* Slate 900 */
+            color: #CBD5E1; /* Slate 300 */
+        }
+        h1, h2, h3 {
+            font-family: 'Poppins', sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #38BDF8, #A78BFA);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card {
+            background-color: #1E293B; /* Slate 800 */
+            border: 1px solid #334155; /* Slate 700 */
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background-color: #38BDF8; /* Sky 500 */
+            color: #0F172A;
+            transition: background-color 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #7DD3FC; /* Sky 300 */
+        }
+        .btn-secondary {
+            background-color: #334155; /* Slate 700 */
+            color: #E2E8F0; /* Slate 200 */
+            transition: background-color 0.3s ease;
+        }
+        .btn-secondary:hover {
+            background-color: #475569; /* Slate 600 */
+        }
+        .btn-danger {
+            background-color: #F43F5E; /* Rose 500 */
+            color: #FFFFFF;
+            transition: background-color 0.3s ease;
+        }
+        .btn-danger:hover {
+            background-color: #FB7185; /* Rose 400 */
+        }
+        .timer-circle {
+            transition: stroke-dashoffset 1s linear;
+        }
+        .program-card.selected {
+            border-color: #38BDF8;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+        }
+        /* Animácie */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <!-- Modálne okno pre bezpečnostné upozornenie -->
+    <div id="safetyModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-[#1E293B] border border-slate-700 rounded-2xl shadow-2xl w-full max-w-md p-8 text-center fade-in">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500/10 mb-4">
+                <i data-lucide="shield-alert" class="h-8 w-8 text-yellow-400"></i>
+            </div>
+            <h2 class="text-2xl font-bold text-white mb-3">Dôležité Upozornenie</h2>
+            <p class="text-slate-400 mb-6">
+                Informácie v tejto aplikácii nenahrádzajú lekárske poradenstvo. Pred začatím akéhokoľvek pôstu sa vždy poraďte so svojím lekárom, najmä ak máte zdravotné problémy.
+            </p>
+            <button id="acceptSafety" class="w-full btn-primary font-bold py-3 px-6 rounded-lg text-lg">
+                Rozumiem a súhlasím
+            </button>
+        </div>
+    </div>
+
+
+    <!-- Hlavný obsah -->
+    <div id="mainContent" class="hidden">
+        <header class="py-8 px-4 text-center fade-in">
+            <h1 class="text-4xl md:text-6xl font-bold mb-4">
+                <span class="gradient-text">Pôst pre každého.</span><br>
+                <span class="text-white">Bezpečne.</span>
+            </h1>
+            <p class="max-w-2xl mx-auto text-lg text-slate-400">
+                Váš interaktívny sprievodca svetom pôstu. Objavte jeho benefity s nástrojmi, ktoré kladú dôraz na vašu bezpečnosť.
+            </p>
+        </header>
+
+        <main class="px-4 md:px-8">
+            <!-- Sekcia Časovača -->
+            <section id="timer-section" class="max-w-4xl mx-auto mb-16 fade-in" style="animation-delay: 200ms;">
+                <div class="card rounded-2xl p-6 md:p-10 shadow-2xl">
+                    <div class="grid md:grid-cols-2 gap-8 items-center">
+                        <!-- Vizuál časovača -->
+                        <div class="relative w-64 h-64 mx-auto flex items-center justify-center">
+                            <svg class="absolute inset-0" viewBox="0 0 100 100">
+                                <circle class="text-slate-700" stroke-width="7" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
+                                <circle id="timer-progress"
+                                    class="text-sky-400 timer-circle"
+                                    stroke-width="7"
+                                    stroke-dasharray="283"
+                                    stroke-dashoffset="283"
+                                    stroke-linecap="round"
+                                    stroke="currentColor"
+                                    fill="transparent"
+                                    r="45"
+                                    cx="50"
+                                    cy="50"
+                                    transform="rotate(-90 50 50)" />
+                            </svg>
+                            <div class="text-center">
+                                <div id="time-display" class="text-5xl font-bold text-white">16:00:00</div>
+                                <div id="fast-stage" class="text-sky-400 font-semibold mt-1">Pripravený na štart</div>
+                            </div>
+                        </div>
+                        <!-- Ovládanie a tipy -->
+                        <div class="text-center md:text-left">
+                            <h2 class="text-3xl font-bold text-white mb-4">Interaktívny Časovač</h2>
+                            <div class="card p-4 rounded-lg mb-6 border-l-4 border-sky-400 bg-slate-900/50">
+                                <h3 class="font-semibold text-white mb-1">Adaptívny tip:</h3>
+                                <p id="adaptive-tip" class="text-slate-300 text-sm">Vyberte si program a stlačte štart pre začatie vašej cesty pôstom.</p>
+                            </div>
+                            <div class="flex justify-center md:justify-start space-x-4">
+                                <button id="startBtn" class="btn-primary font-bold py-3 px-6 rounded-lg flex items-center gap-2"><i data-lucide="play" class="w-5 h-5"></i>Štart</button>
+                                <button id="pauseBtn" class="btn-secondary font-bold py-3 px-6 rounded-lg hidden items-center gap-2"><i data-lucide="pause" class="w-5 h-5"></i>Pauza</button>
+                                <button id="stopBtn" class="btn-danger font-bold py-3 px-6 rounded-lg hidden items-center gap-2"><i data-lucide="stop-circle" class="w-5 h-5"></i>Stop</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sekcia programov -->
+            <section id="programs" class="max-w-6xl mx-auto mb-16 fade-in" style="animation-delay: 400ms;">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-white">Vyberte si svoj program pôstu</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Karty programov budú generované dynamicky -->
+                </div>
+            </section>
+            
+            <!-- Sekcia Ako to funguje -->
+            <section id="how-it-works" class="max-w-6xl mx-auto mb-16 fade-in" style="animation-delay: 600ms;">
+                <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-white">Ako pôst funguje: Fázy v tele</h2>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="card p-6 rounded-xl">
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="bg-sky-500/10 p-3 rounded-lg"><i data-lucide="battery-charging" class="w-6 h-6 text-sky-400"></i></div>
+                            <h3 class="text-xl font-bold text-white">Skorá Fáza</h3>
+                        </div>
+                        <p class="text-slate-400"><b>4-18 hodín:</b> Telo spotrebúva uložený glykogén. Hladina cukru a inzulínu klesá, pripravuje sa na spaľovanie tukov.</p>
+                    </div>
+                    <div class="card p-6 rounded-xl">
+                         <div class="flex items-center gap-4 mb-3">
+                            <div class="bg-purple-500/10 p-3 rounded-lg"><i data-lucide="flame" class="w-6 h-6 text-purple-400"></i></div>
+                            <h3 class="text-xl font-bold text-white">Ketóza & Autofágia</h3>
+                        </div>
+                        <p class="text-slate-400"><b>18-48 hodín:</b> Telo prechádza na spaľovanie tukov (ketóza) a aktivuje bunkovú obnovu (autofágia), proces recyklácie poškodených buniek.</p>
+                    </div>
+                    <div class="card p-6 rounded-xl">
+                         <div class="flex items-center gap-4 mb-3">
+                            <div class="bg-teal-500/10 p-3 rounded-lg"><i data-lucide="gem" class="w-6 h-6 text-teal-400"></i></div>
+                            <h3 class="text-xl font-bold text-white">Dlhodobý Pôst</h3>
+                        </div>
+                        <p class="text-slate-400"><b>>48 hodín:</b> Hlboká ketóza a autofágia. Hladina rastového hormónu stúpa. Vyžaduje opatrnosť, hydratáciu a sledovanie elektrolytov.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sekcia Bezpečnosť -->
+            <section id="safety" class="max-w-4xl mx-auto mb-16 fade-in" style="animation-delay: 800ms;">
+                <div class="card rounded-2xl p-6 md:p-10 border-l-4 border-yellow-400 bg-yellow-500/5">
+                    <div class="flex items-start gap-4">
+                        <i data-lucide="alert-triangle" class="w-8 h-8 text-yellow-400 flex-shrink-0 mt-1"></i>
+                        <div>
+                            <h2 class="text-3xl font-bold text-white mb-4">Bezpečnosť na prvom mieste</h2>
+                            <p class="text-slate-300 mb-4">Pôst nie je vhodný pre každého. Rizikové skupiny ako tehotné ženy, ľudia s cukrovkou, poruchami príjmu potravy alebo podváhou by nemali držať pôst bez lekárskeho dohľadu.</p>
+                            <h3 class="text-xl font-semibold text-white mt-6 mb-3">Ukončenie pôstu (Refeeding)</h3>
+                            <p class="text-slate-300">Po dlhšom pôste (>24h) je kľúčové začať jesť pomaly. Začnite ľahkým jedlom ako vývar alebo polievka. Vyhnite sa cukrom a prejedaniu, aby ste predišli refeeding syndrómu.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="text-center p-8 text-slate-500 text-sm">
+            <p>&copy; 2025 Interaktívny Sprievodca Pôstom. Všetky práva vyhradené.</p>
+            <p class="mt-2 max-w-2xl mx-auto">Tento nástroj slúži len na edukačné účely a nenahrádza odborné lekárske poradenstvo. Vždy konzultujte svoje zámery s lekárom.</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+
+            // --- Elementy ---
+            const timeDisplay = document.getElementById('time-display');
+            const fastStage = document.getElementById('fast-stage');
+            const adaptiveTip = document.getElementById('adaptive-tip');
+            const progressCircle = document.getElementById('timer-progress');
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const programsContainer = document.querySelector('#programs .grid');
+            
+            // --- Modálne okno ---
+            const safetyModal = document.getElementById('safetyModal');
+            const acceptSafetyBtn = document.getElementById('acceptSafety');
+            const mainContent = document.getElementById('mainContent');
+
+            acceptSafetyBtn.addEventListener('click', () => {
+                safetyModal.style.display = 'none';
+                mainContent.style.display = 'block';
+            });
+
+            // --- Dáta programov ---
+            const programsData = [
+                { id: 12, title: "12-hodinový pôst", desc: "Základný cyklus, ideálny pre začiatočníkov na adaptáciu tela.", icon: 'sunrise' },
+                { id: 16, title: "16-hodinový pôst", desc: "Populárna metóda 16/8, podporuje spaľovanie tukov. Štandardne predvolené.", icon: 'clock' },
+                { id: 24, title: "24-hodinový pôst", desc: "Aktivuje bunkovú obnovu (autofágiu) a hlbšiu ketózu.", icon: 'recycle' },
+                { id: 36, title: "36-hodinový pôst", desc: "Pre pokročilých, podporuje metabolický reset. Vyžaduje prípravu.", icon: 'zap' },
+                { id: 48, title: "48-hodinový pôst", desc: "Výrazne zlepšuje inzulínovú senzitivitu. Len so skúsenosťami.", icon: 'shield-check' },
+                { id: 72, title: "72-hodinový pôst", desc: "Maximálna autofágia. Vyžaduje lekársky dohľad a opatrný refeeding.", icon: 'gem' },
+            ];
+
+            // --- Stav aplikácie ---
+            let timerInterval;
+            let totalSeconds;
+            let secondsRemaining;
+            let selectedProgram = 16; // Predvolený program
+            let isPaused = false;
+            let isRunning = false;
+            const radius = 45;
+            const circumference = 2 * Math.PI * radius;
+
+            // --- Funkcie ---
+
+            function generateProgramCards() {
+                programsContainer.innerHTML = '';
+                programsData.forEach(p => {
+                    const isSelected = p.id === selectedProgram;
+                    const card = document.createElement('div');
+                    card.className = `program-card card rounded-xl p-6 cursor-pointer border-2 ${isSelected ? 'selected' : 'border-transparent'}`;
+                    card.dataset.duration = p.id;
+                    card.innerHTML = `
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="bg-slate-700/50 p-3 rounded-lg"><i data-lucide="${p.icon}" class="w-6 h-6 text-sky-400"></i></div>
+                            <h3 class="text-xl font-bold text-white">${p.title}</h3>
+                        </div>
+                        <p class="text-slate-400">${p.desc}</p>
+                    `;
+                    card.addEventListener('click', () => selectProgram(p.id));
+                    programsContainer.appendChild(card);
+                });
+                lucide.createIcons();
+            }
+
+            function selectProgram(durationHours) {
+                if (isRunning) return; // Nedá sa meniť program počas behu
+                selectedProgram = durationHours;
+                totalSeconds = selectedProgram * 3600;
+                secondsRemaining = totalSeconds;
+                updateDisplay();
+                generateProgramCards();
+            }
+
+            function updateDisplay() {
+                const hours = Math.floor(secondsRemaining / 3600);
+                const minutes = Math.floor((secondsRemaining % 3600) / 60);
+                const seconds = secondsRemaining % 60;
+                timeDisplay.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                updateProgress();
+                updateStatus();
+            }
+
+            function updateProgress() {
+                const progress = (totalSeconds - secondsRemaining) / totalSeconds;
+                const offset = circumference * (1 - progress);
+                progressCircle.style.strokeDashoffset = offset;
+            }
+
+            function updateStatus() {
+                const hoursElapsed = (totalSeconds - secondsRemaining) / 3600;
+                let stage = "Pripravený na štart";
+                let tip = "Vyberte si program a stlačte štart.";
+
+                if (!isRunning && !isPaused) {
+                     stage = "Pripravený na štart";
+                     tip = "Vyberte si program a stlačte štart.";
+                } else if (isRunning || isPaused) {
+                    if (hoursElapsed < 4) {
+                        stage = "Trávenie";
+                        tip = "Telo spracováva posledné jedlo. Hladina cukru je stabilná.";
+                    } else if (hoursElapsed < 12) {
+                        stage = "Začiatok spaľovania tukov";
+                        tip = "Zásoby glykogénu sa míňajú. Pite dostatok vody.";
+                    } else if (hoursElapsed < 18) {
+                        stage = "Spaľovanie tukov";
+                        tip = "Telo začína produkovať ketóny ako zdroj energie.";
+                    } else if (hoursElapsed < 24) {
+                        stage = "Autofágia aktivovaná";
+                        tip = "Začína sa proces bunkovej obnovy. Gratulujeme!";
+                    } else if (hoursElapsed < 48) {
+                        stage = "Hlboká ketóza";
+                        tip = "Telo je v plnom režime spaľovania tukov. Sledujte príznaky a doplňte elektrolyty.";
+                    } else {
+                        stage = "Maximálna autofágia";
+                        tip = "Dosahujete maximálne benefity. Pri dlhých pôstoch je kľúčová opatrnosť.";
+                    }
+                }
+
+                if(isPaused){
+                    stage = "Pauza";
+                }
+
+                fastStage.textContent = stage;
+                adaptiveTip.textContent = tip;
+            }
+            
+            function startTimer() {
+                if (isRunning) return;
+                isRunning = true;
+                isPaused = false;
+                
+                startBtn.classList.add('hidden');
+                pauseBtn.classList.remove('hidden');
+                stopBtn.classList.remove('hidden');
+
+                timerInterval = setInterval(() => {
+                    if (!isPaused) {
+                        secondsRemaining--;
+                        updateDisplay();
+                        if (secondsRemaining <= 0) {
+                            stopTimer(true); // Pôst dokončený
+                        }
+                    }
+                }, 1000);
+            }
+
+            function pauseTimer() {
+                isPaused = !isPaused;
+                pauseBtn.innerHTML = isPaused ? `<i data-lucide="play" class="w-5 h-5"></i>Pokračovať` : `<i data-lucide="pause" class="w-5 h-5"></i>Pauza`;
+                lucide.createIcons();
+                updateStatus();
+            }
+
+            function stopTimer(completed = false) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                isPaused = false;
+                
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                stopBtn.classList.add('hidden');
+                pauseBtn.innerHTML = `<i data-lucide="pause" class="w-5 h-5"></i>Pauza`;
+                lucide.createIcons();
+
+                if (completed) {
+                    fastStage.textContent = "Pôst dokončený!";
+                    adaptiveTip.textContent = "Skvelá práca! Nezabudnite na bezpečné ukončenie pôstu.";
+                } else {
+                     fastStage.textContent = "Pôst zastavený";
+                     adaptiveTip.textContent = "Každý krok sa počíta. Nabudúce to pôjde lepšie!";
+                }
+                
+                setTimeout(() => {
+                    selectProgram(selectedProgram); // Reset
+                }, 3000);
+            }
+
+            // --- Inicializácia ---
+            function init() {
+                progressCircle.style.strokeDasharray = circumference;
+                progressCircle.style.strokeDashoffset = circumference;
+                selectProgram(16);
+                generateProgramCards();
+            }
+
+            // --- Event Listeners ---
+            startBtn.addEventListener('click', startTimer);
+            pauseBtn.addEventListener('click', pauseTimer);
+            stopBtn.addEventListener('click', () => stopTimer(false));
+            
+            init();
+        });
+    </script>
+</body>
+</html>
