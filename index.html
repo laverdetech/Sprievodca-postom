@@ -557,25 +557,19 @@
     <!-- COOKIE LIŠTA v2.0 START -->
     <script type="text/javascript">
         var options={
+            // Nastavenie pre plnú šírku na spodnej časti obrazovky
             box_umisteni:"bottom:0;left:0;",
             box_sirka:"100%",
             box_odsazeni:"0px",
             box_odsazeni_obsah:"20px",
-            box_lhz:"0px",
-            box_phz:"0px",
-            box_psz:"0px",
-            box_lsz:"0px",
-            box_stin_hor:"0px",
+            box_zaobleni: "0px",
             box_stin_ver:"-5px",
             box_stin_roz:"15px",
             box_stin_barva:"rgba(0,0,0,0.2)",
-            pozadi_barva:"rgba(30, 41, 59, 0.95)",
-            zavrit_text:"×",
-            zavrit_color:"#E2E8F0",
-            zavrit_size:"24px",
-            zavrit_pozadi:"transparent",
-            zavrit_padding:"10px",
-            zavrit_zaobleni:"99px",
+            
+            // Vizuálne zladenie s dizajnom stránky
+            pozadi_obrazek:"", // Bez obrázku na pozadí
+            pozadi_barva:"rgb(30, 41, 59)", // Farba pozadia zhodná s kartami (#1E293B)
             title:"Používame súbory cookie",
             title_color:"#FFFFFF",
             title_size:"18px",
@@ -584,28 +578,33 @@
             popis_size:"14px",
             odkaz_text:"Viac informácií",
             odkaz_url:"https://www.cookie-lista.cz/co-je-cookies.html",
-            odkaz_color:"#38BDF8",
+            odkaz_color:"#38BDF8", // Primárna modrá farba
             odkaz_color_hover:"#7DD3FC",
-            odkaz_size:"14px",
+
+            // Primárne tlačidlo (Povoliť všetko)
             tlacitko_1_text:"Povoliť všetko",
             tlacitko_1_padding:"12px 24px",
             tlacitko_1_margin:"10px",
-            tlacitko_1_text_barva:"#0F172A",
-            tlacitko_1_pozadi:"#38BDF8",
+            tlacitko_1_text_barva:"#0F172A", // Text farba pre primárne tlačidlo
+            tlacitko_1_pozadi:"#38BDF8", // Pozadie primárneho tlačidla
             tlacitko_1_text_velikost:"14px",
             tlacitko_1_text_barva_hover:"#0F172A",
             tlacitko_1_pozadi_hover:"#7DD3FC",
             tlacitko_1_radius:"8px",
+
+            // Sekundárne tlačidlo (Iba nevyhnutné)
             tlacitko_2_text:"Iba nevyhnutné",
             tlacitko_2_padding:"12px 24px",
             tlacitko_2_margin:"10px",
-            tlacitko_2_text_barva:"#E2E8F0",
-            tlacitko_2_pozadi:"#334155",
+            tlacitko_2_text_barva:"#E2E8F0", // Text farba pre sekundárne tlačidlo
+            tlacitko_2_pozadi:"#334155", // Pozadie sekundárneho tlačidla
             tlacitko_2_text_velikost:"14px",
             tlacitko_2_text_barva_hover:"#FFFFFF",
             tlacitko_2_pozadi_hover:"#475569",
             tlacitko_2_radius:"8px",
-            delay: 1000,
+
+            // Ostatné nastavenia
+            delay: 1500,
             expires: 365,
             uncheckBoxes: true,
             tvurce: false,
@@ -618,4 +617,6 @@
     <!-- COOKIE LIŠTA v2.0 KONIEC -->
 </body>
 </html>
+
+
 
