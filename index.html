@@ -109,20 +109,30 @@
 
     <!-- Hlavný obsah -->
     <div id="mainContent" class="hidden">
-        <!-- Hamburger Menu -->
-        <div class="fixed top-6 right-6 z-40">
-            <button id="menu-toggle" class="p-2 rounded-full bg-slate-800/60 backdrop-blur-sm hover:bg-slate-700/80 transition-colors">
-                <i data-lucide="menu" class="text-white w-6 h-6"></i>
-            </button>
-            <div id="menu-panel" class="hidden absolute top-full right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-lg py-2">
-                <a href="https://sprievodca-postom-protokoly.netlify.app/" target="_blank" class="flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700/50 transition-colors">
-                    <i data-lucide="book-open-check" class="w-5 h-5 text-sky-400"></i>
-                    <span>Pôstne Protokoly</span>
+        <!-- Hlavička -->
+        <header class="relative pt-6 pb-8 px-4 text-center fade-in">
+            <!-- Hamburger Menu -->
+            <div class="absolute top-6 right-6 z-40">
+                <div class="relative">
+                    <button id="menu-toggle" class="p-2 rounded-full bg-slate-800/60 backdrop-blur-sm hover:bg-slate-700/80 transition-colors">
+                        <i data-lucide="menu" class="text-white w-6 h-6"></i>
+                    </button>
+                    <div id="menu-panel" class="hidden absolute top-full right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-lg py-2">
+                        <a href="https://sprievodca-postom-protokoly.netlify.app/" target="_blank" class="flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700/50 transition-colors">
+                            <i data-lucide="book-open-check" class="w-5 h-5 text-sky-400"></i>
+                            <span>Pôstne Protokoly</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logo v Hlavičke -->
+            <div class="flex justify-center mb-4">
+                <a href="#">
+                    <img src="https://res.cloudinary.com/ddqrq1sf6/image/upload/v1756661106/Sni%CC%81mka_obrazovky_2025-08-31_o_19.22.41_vomkxx.png" alt="Logo Sprievodca Pôstom" class="h-32 w-32 object-contain">
                 </a>
             </div>
-        </div>
 
-        <header class="py-8 px-4 text-center fade-in">
             <h1 class="text-4xl md:text-6xl font-bold mb-4">
                 <span class="gradient-text">Pôst pre každého.</span><br>
                 <span class="text-white">Bezpečne.</span>
@@ -229,6 +239,7 @@
         </main>
 
         <footer class="text-center p-8 text-slate-500 text-sm">
+            <img src="https://res.cloudinary.com/ddqrq1sf6/image/upload/v1756661106/Sni%CC%81mka_obrazovky_2025-08-31_o_19.22.41_vomkxx.png" alt="Logo Sprievodca Pôstom" class="w-32 h-32 object-contain mx-auto mb-4">
             <p>&copy; 2025 Interaktívny Sprievodca Pôstom. Všetky práva vyhradené.</p>
             <p class="mt-2 max-w-2xl mx-auto">Tento nástroj slúži len na edukačné účely a nenahrádza odborné lekárske poradenstvo. Vždy konzultujte svoje zámery s lekárom.</p>
         </footer>
@@ -516,34 +527,59 @@
             }
             
             function updateStatusUI() {
-                const { state, startTime, totalPausedMs } = getFastState();
+                const { state, startTime, totalPausedMs, programHours } = getFastState();
                 let hoursElapsed = 0;
+                let elapsedMs = 0;
                 if (state !== 'stopped' && startTime > 0) {
-                    hoursElapsed = (Date.now() - startTime - totalPausedMs) / (1000 * 3600);
+                    elapsedMs = Date.now() - startTime - totalPausedMs;
+                    hoursElapsed = elapsedMs / (1000 * 3600);
                 }
                 
                 let stage = "Pripravený na štart";
                 let tip = "Vyberte si program a stlačte štart.";
+                let useHtml = false;
 
                 if (state === 'running' || state === 'paused') {
+                    // --- Logika pre Fázu Pôstu ---
                     if (hoursElapsed < 4) {
                         stage = "Trávenie";
-                        tip = "Telo spracováva posledné jedlo. Hladina cukru je stabilná.";
                     } else if (hoursElapsed < 12) {
                         stage = "Začiatok spaľovania tukov";
-                        tip = "Zásoby glykogénu sa míňajú. Pite dostatok vody.";
                     } else if (hoursElapsed < 18) {
                         stage = "Spaľovanie tukov";
-                        tip = "Telo začína produkovať ketóny ako zdroj energie.";
                     } else if (hoursElapsed < 24) {
                         stage = "Autofágia aktivovaná";
-                        tip = "Začína sa proces bunkovej obnovy. Gratulujeme!";
                     } else if (hoursElapsed < 48) {
                         stage = "Hlboká ketóza";
-                        tip = "Telo je v plnom režime spaľovania tukov. Sledujte príznaky a doplňte elektrolyty.";
                     } else {
                         stage = "Maximálna autofágia";
-                        tip = "Dosahujete maximálne benefity. Pri dlhých pôstoch je kľúčová opatrnosť.";
+                    }
+
+                    // --- Logika pre Adaptívny Tip ---
+                    const TEN_MINUTES_MS = 10 * 60 * 1000;
+                    if (elapsedMs < TEN_MINUTES_MS && startTime > 0) {
+                        const endTime = new Date(startTime + programHours * 3600 * 1000);
+                        const formattedEndTime = endTime.toLocaleString('sk-SK', {
+                            day: 'numeric', month: 'numeric', year: 'numeric', 
+                            hour: '2-digit', minute: '2-digit'
+                        }).replace(',', '');
+                        tip = `<strong>Koniec pôstu:</strong> ${formattedEndTime}`;
+                        useHtml = true;
+                    } else {
+                        // Bežné adaptívne tipy po 10 minútach
+                        if (stage === "Trávenie") {
+                            tip = "Telo spracováva posledné jedlo. Hladina cukru je stabilná.";
+                        } else if (stage === "Začiatok spaľovania tukov") {
+                            tip = "Zásoby glykogénu sa míňajú. Pite dostatok vody.";
+                        } else if (stage === "Spaľovanie tukov") {
+                            tip = "Telo začína produkovať ketóny ako zdroj energie.";
+                        } else if (stage === "Autofágia aktivovaná") {
+                            tip = "Začína sa proces bunkovej obnovy. Gratulujeme!";
+                        } else if (stage === "Hlboká ketóza") {
+                            tip = "Telo je v plnom režime spaľovania tukov. Sledujte príznaky a doplňte elektrolyty.";
+                        } else { // Maximálna autofágia
+                            tip = "Dosahujete maximálne benefity. Pri dlhých pôstoch je kľúčová opatrnosť.";
+                        }
                     }
                 }
                 
@@ -552,7 +588,11 @@
                 }
 
                 fastStage.textContent = stage;
-                adaptiveTip.textContent = tip;
+                if (useHtml) {
+                    adaptiveTip.innerHTML = tip;
+                } else {
+                    adaptiveTip.textContent = tip;
+                }
             }
 
             // --- Inicializácia ---
@@ -645,4 +685,11 @@
     <!-- COOKIE LIŠTA v2.0 KONIEC -->
 </body>
 </html>
+
+
+
+
+
+
+
 
