@@ -105,6 +105,19 @@
 
     <!-- Hlavný obsah -->
     <div id="mainContent" class="hidden">
+        <!-- Hamburger Menu -->
+        <div class="fixed top-6 right-6 z-40">
+            <button id="menu-toggle" class="p-2 rounded-full bg-slate-800/60 backdrop-blur-sm hover:bg-slate-700/80 transition-colors">
+                <i data-lucide="menu" class="text-white w-6 h-6"></i>
+            </button>
+            <div id="menu-panel" class="hidden absolute top-full right-0 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-lg shadow-lg py-2">
+                <a href="https://sprievodca-postom-protokoly.netlify.app/" target="_blank" class="flex items-center gap-3 px-4 py-2 text-slate-300 hover:bg-slate-700/50 transition-colors">
+                    <i data-lucide="book-open-check" class="w-5 h-5 text-sky-400"></i>
+                    <span>Pôstne Protokoly</span>
+                </a>
+            </div>
+        </div>
+
         <header class="py-8 px-4 text-center fade-in">
             <h1 class="text-4xl md:text-6xl font-bold mb-4">
                 <span class="gradient-text">Pôst pre každého.</span><br>
@@ -231,6 +244,8 @@
             const stopBtn = document.getElementById('stopBtn');
             const programsContainer = document.querySelector('#programs .grid');
             const notificationFallback = document.getElementById('notification-fallback');
+            const menuToggle = document.getElementById('menu-toggle');
+            const menuPanel = document.getElementById('menu-panel');
             
             // --- Modálne okno ---
             const safetyModal = document.getElementById('safetyModal');
@@ -306,11 +321,10 @@
                 localStorage.removeItem('fastStartTime');
                 localStorage.removeItem('fastPauseTime');
                 localStorage.removeItem('fastTotalPausedMs');
-                localStorage.removeItem('fastProgramHours');
             }
 
             function tick() {
-                const { state, startTime, pauseTime, totalPausedMs, programHours } = getFastState();
+                const { state, startTime, totalPausedMs, programHours } = getFastState();
                 
                 if (state !== 'running') return;
 
@@ -348,6 +362,7 @@
 
                 if (state === 'running') { // Pause
                     setFastState({ state: 'paused', pauseTime: Date.now() });
+                    if (timerInterval) clearInterval(timerInterval);
                     updateButtonUI('paused');
                 } else if (state === 'paused') { // Resume
                     const pausedDuration = Date.now() - pauseTime;
@@ -357,6 +372,8 @@
                         pauseTime: 0,
                         totalPausedMs: totalPausedMs + pausedDuration
                     });
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = setInterval(tick, 1000);
                     updateButtonUI('running');
                 }
                  updateStatusUI();
@@ -376,7 +393,9 @@
                     adaptiveTip.textContent = "Každý krok sa počíta. Nabudúce to pôjde lepšie!";
                 }
                 
+                const lastProgram = getFastState().programHours;
                 clearFastState();
+                setFastState({ state: 'stopped', programHours: lastProgram });
                 updateButtonUI('stopped');
 
                 setTimeout(() => {
@@ -385,17 +404,19 @@
             }
             
             function restoreTimerState() {
-                const { state } = getFastState();
-                if (state === 'running' || state === 'paused') {
-                    selectedProgram = getFastState().programHours;
-                    generateProgramCards();
+                const state = getFastState();
+                selectedProgram = state.programHours;
+                generateProgramCards();
+                
+                if (state.state === 'running' || state.state === 'paused') {
                     if (timerInterval) clearInterval(timerInterval);
                     timerInterval = setInterval(tick, 1000);
-                    updateButtonUI(state);
-                    updateStatusUI();
+                    updateButtonUI(state.state);
                 } else {
-                    resetUIToProgram(16);
+                    resetUIToProgram(selectedProgram);
+                    updateButtonUI('stopped');
                 }
+                updateStatusUI();
             }
 
             // --- UI Funkcie ---
@@ -439,6 +460,7 @@
 
             function selectProgram(durationHours) {
                 selectedProgram = durationHours;
+                setFastState({ programHours: durationHours });
                 resetUIToProgram(durationHours);
                 generateProgramCards();
             }
@@ -454,7 +476,7 @@
                 const seconds = secondsRemaining % 60;
                 timeDisplay.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
                 
-                const progress = (totalDurationSec - secondsRemaining) / totalDurationSec;
+                const progress = totalDurationSec > 0 ? (totalDurationSec - secondsRemaining) / totalDurationSec : 0;
                 const offset = circumference * (1 - progress);
                 progressCircle.style.strokeDashoffset = offset;
 
@@ -462,9 +484,11 @@
             }
             
             function updateStatusUI() {
-                const { state, startTime, totalPausedMs, programHours } = getFastState();
-                const elapsedMs = Date.now() - startTime - totalPausedMs;
-                const hoursElapsed = elapsedMs / (1000 * 3600);
+                const { state, startTime, totalPausedMs } = getFastState();
+                let hoursElapsed = 0;
+                if (state !== 'stopped' && startTime > 0) {
+                    hoursElapsed = (Date.now() - startTime - totalPausedMs) / (1000 * 3600);
+                }
                 
                 let stage = "Pripravený na štart";
                 let tip = "Vyberte si program a stlačte štart.";
@@ -504,7 +528,6 @@
                 progressCircle.style.strokeDasharray = circumference;
                 progressCircle.style.strokeDashoffset = circumference;
                 restoreTimerState();
-                generateProgramCards();
             }
 
             // --- Event Listeners ---
@@ -512,9 +535,21 @@
             pauseBtn.addEventListener('click', pauseTimer);
             stopBtn.addEventListener('click', () => stopTimer(false));
             
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuPanel.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!menuPanel.contains(e.target) && !menuToggle.contains(e.target)) {
+                    menuPanel.classList.add('hidden');
+                }
+            });
+
             init();
         });
     </script>
 </body>
 </html>
+
 
