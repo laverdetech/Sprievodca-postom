@@ -62,7 +62,7 @@
             background-color: #FB7185; /* Rose 400 */
         }
         .timer-circle {
-            transition: stroke-dashoffset 1s linear;
+            transition: stroke-dashoffset 1s linear, stroke 1s linear;
         }
         .program-card.selected {
             border-color: #38BDF8;
@@ -142,12 +142,12 @@
                             <svg class="absolute inset-0" viewBox="0 0 100 100">
                                 <circle class="text-slate-700" stroke-width="7" stroke="currentColor" fill="transparent" r="45" cx="50" cy="50" />
                                 <circle id="timer-progress"
-                                    class="text-sky-400 timer-circle"
+                                    class="timer-circle"
                                     stroke-width="7"
                                     stroke-dasharray="283"
                                     stroke-dashoffset="283"
                                     stroke-linecap="round"
-                                    stroke="currentColor"
+                                    stroke="#38BDF8"
                                     fill="transparent"
                                     r="45"
                                     cx="50"
@@ -276,6 +276,27 @@
             let selectedProgram = 16;
             const radius = 45;
             const circumference = 2 * Math.PI * radius;
+
+            // --- Funkcie pre gradient farby ---
+            function hexToRgb(hex) {
+                let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
+            }
+
+            function lerpColor(color1, color2, factor) {
+                const c1 = hexToRgb(color1);
+                const c2 = hexToRgb(color2);
+                if (!c1 || !c2) return color1;
+
+                const r = Math.round(c1.r + factor * (c2.r - c1.r));
+                const g = Math.round(c1.g + factor * (c2.g - c1.g));
+                const b = Math.round(c1.b + factor * (c2.b - c1.b));
+                return `rgb(${r}, ${g}, ${b})`;
+            }
 
             // --- Notifikácie ---
             function requestNotificationPermission() {
@@ -414,7 +435,9 @@
                 
                 if (state.state === 'running' || state.state === 'paused') {
                     if (timerInterval) clearInterval(timerInterval);
-                    timerInterval = setInterval(tick, 1000);
+                    if(state.state === 'running') {
+                        timerInterval = setInterval(tick, 1000);
+                    }
                     updateButtonUI(state.state);
                 } else {
                     resetUIToProgram(selectedProgram);
@@ -483,6 +506,11 @@
                 const progress = totalDurationSec > 0 ? (totalDurationSec - secondsRemaining) / totalDurationSec : 0;
                 const offset = circumference * (1 - progress);
                 progressCircle.style.strokeDashoffset = offset;
+
+                // Gradient farby
+                const startColor = "#38BDF8"; // Sky 400
+                const endColor = "#FBBF24";   // Amber 400
+                progressCircle.style.stroke = lerpColor(startColor, endColor, progress);
 
                 updateStatusUI();
             }
@@ -617,6 +645,4 @@
     <!-- COOKIE LIŠTA v2.0 KONIEC -->
 </body>
 </html>
-
-
 
