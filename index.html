@@ -9,6 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- Cookie Lišta Skripty -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://www.cookie-lista.cz/jquery.ihavecookies.js"></script>
 
     <style>
         body {
@@ -549,7 +553,69 @@
             init();
         });
     </script>
+    
+    <!-- COOKIE LIŠTA v2.0 START -->
+    <script type="text/javascript">
+        var options={
+            box_umisteni:"bottom:0;left:0;",
+            box_sirka:"100%",
+            box_odsazeni:"0px",
+            box_odsazeni_obsah:"20px",
+            box_lhz:"0px",
+            box_phz:"0px",
+            box_psz:"0px",
+            box_lsz:"0px",
+            box_stin_hor:"0px",
+            box_stin_ver:"-5px",
+            box_stin_roz:"15px",
+            box_stin_barva:"rgba(0,0,0,0.2)",
+            pozadi_barva:"rgba(30, 41, 59, 0.95)",
+            zavrit_text:"×",
+            zavrit_color:"#E2E8F0",
+            zavrit_size:"24px",
+            zavrit_pozadi:"transparent",
+            zavrit_padding:"10px",
+            zavrit_zaobleni:"99px",
+            title:"Používame súbory cookie",
+            title_color:"#FFFFFF",
+            title_size:"18px",
+            popis:"Naše webové stránky využívajú súbory cookie na zlepšenie vášho zážitku. Súhlasom nám pomáhate analyzovať návštevnosť a personalizovať obsah.",
+            popis_color:"#CBD5E1",
+            popis_size:"14px",
+            odkaz_text:"Viac informácií",
+            odkaz_url:"https://www.cookie-lista.cz/co-je-cookies.html",
+            odkaz_color:"#38BDF8",
+            odkaz_color_hover:"#7DD3FC",
+            odkaz_size:"14px",
+            tlacitko_1_text:"Povoliť všetko",
+            tlacitko_1_padding:"12px 24px",
+            tlacitko_1_margin:"10px",
+            tlacitko_1_text_barva:"#0F172A",
+            tlacitko_1_pozadi:"#38BDF8",
+            tlacitko_1_text_velikost:"14px",
+            tlacitko_1_text_barva_hover:"#0F172A",
+            tlacitko_1_pozadi_hover:"#7DD3FC",
+            tlacitko_1_radius:"8px",
+            tlacitko_2_text:"Iba nevyhnutné",
+            tlacitko_2_padding:"12px 24px",
+            tlacitko_2_margin:"10px",
+            tlacitko_2_text_barva:"#E2E8F0",
+            tlacitko_2_pozadi:"#334155",
+            tlacitko_2_text_velikost:"14px",
+            tlacitko_2_text_barva_hover:"#FFFFFF",
+            tlacitko_2_pozadi_hover:"#475569",
+            tlacitko_2_radius:"8px",
+            delay: 1000,
+            expires: 365,
+            uncheckBoxes: true,
+            tvurce: false,
+        }
+
+    $(document).ready(function() {
+        $('body').ihavecookies(options);
+    });
+    </script>
+    <!-- COOKIE LIŠTA v2.0 KONIEC -->
 </body>
 </html>
-
 
