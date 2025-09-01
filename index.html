@@ -14,11 +14,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" src="https://www.cookie-lista.cz/jquery.ihavecookies.js"></script>
 
-    <!-- Recharts knižnica -->
-    <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/recharts@2.1.9/umd/Recharts.min.js"></script>
-
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -87,29 +82,6 @@
         }
         #notification-fallback {
             transition: opacity 0.5s, transform 0.5s;
-        }
-        /* Custom styles for range slider */
-        input[type=range] {
-            -webkit-appearance: none;
-            width: 100%;
-            background: transparent;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 20px;
-            width: 20px;
-            border-radius: 50%;
-            background: #38BDF8;
-            cursor: pointer;
-            margin-top: -8px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
-            box-shadow: 0 0 5px #38BDF8, 0 0 10px #38BDF8;
-        }
-        input[type=range]::-webkit-slider-runnable-track {
-            width: 100%;
-            height: 4px;
-            cursor: pointer;
-            background: #334155;
-            border-radius: 5px;
         }
     </style>
 </head>
@@ -244,42 +216,6 @@
                     </div>
                 </div>
             </section>
-            
-            <!-- Nová Sekcia: Vizualizácia Priebehu Pôstu -->
-            <section id="visualization-section" class="hidden max-w-4xl mx-auto mb-16 fade-in">
-                <div class="card rounded-2xl p-6 md:p-10 shadow-2xl">
-                    <h2 class="text-3xl font-bold text-center text-white mb-2">Vizualizácia Priebehu Pôstu</h2>
-                    <p class="text-slate-400 text-center mb-6">Posuňte a sledujte, ako sa menia kľúčové ukazovatele v priebehu 72 hodín.</p>
-                    
-                    <div class="flex justify-between items-center text-white font-bold mb-2">
-                        <span>Začiatok Pôstu</span>
-                        <span id="slider-time-label" class="text-sky-400 text-lg">0 hodín</span>
-                        <span>72 hodín</span>
-                    </div>
-                    <input type="range" id="timeline-slider" min="0" max="72" value="0" step="0.5" class="w-full mb-6">
-                    
-                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-                        <div class="card text-center p-4 bg-slate-900/50">
-                            <p class="text-sm text-slate-400">Inzulín / Glukóza</p>
-                            <p id="ig-status" class="text-lg font-bold text-white">-</p>
-                        </div>
-                        <div class="card text-center p-4 bg-slate-900/50">
-                            <p class="text-sm text-slate-400">Ketóny</p>
-                            <p id="ketones-status" class="text-lg font-bold text-white">-</p>
-                        </div>
-                        <div class="card text-center p-4 bg-slate-900/50">
-                            <p class="text-sm text-slate-400">Autofágia</p>
-                            <p id="autophagy-status" class="text-lg font-bold text-white">-</p>
-                        </div>
-                         <div class="card text-center p-4 bg-slate-900/50">
-                            <p class="text-sm text-slate-400">Rastový Hormón</p>
-                            <p id="hgh-status" class="text-lg font-bold text-white">-</p>
-                        </div>
-                    </div>
-
-                    <div id="timeline-chart" style="width: 100%; height: 300px;"></div>
-                </div>
-            </section>
 
             <!-- Sekcia programov -->
             <section id="programs" class="max-w-6xl mx-auto mb-16 fade-in" style="animation-delay: 400ms;">
@@ -343,8 +279,6 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
-            const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } = Recharts;
-
 
             // --- Elementy ---
             const timeDisplay = document.getElementById('time-display');
@@ -364,13 +298,6 @@
             const completionBenefits = document.getElementById('completionBenefits');
             const completionRefeed = document.getElementById('completionRefeed');
             const closeCompletionModal = document.getElementById('closeCompletionModal');
-            const visualizationSection = document.getElementById('visualization-section');
-            const timelineSlider = document.getElementById('timeline-slider');
-            const sliderTimeLabel = document.getElementById('slider-time-label');
-            const igStatus = document.getElementById('ig-status');
-            const ketonesStatus = document.getElementById('ketones-status');
-            const autophagyStatus = document.getElementById('autophagy-status');
-            const hghStatus = document.getElementById('hgh-status');
 
             
             // --- Modálne okno ---
@@ -385,22 +312,96 @@
 
             // --- Dáta pre okno po pôste ---
             const fastProtocols = {
-              "12": { "benefits": ["Tráviaci systém si oddýchne.", "Zlepšenie kvality spánku."], "refeed": ["Ľahké jedlo s nízkym obsahom cukru.", "Vyhnite sa ťažkým jedlám."] },
-              "16": { "benefits": ["Zvýšená citlivosť na inzulín.", "Telo začína spaľovať tuky."], "refeed": ["Začnite vývarom alebo zeleninou.", "Vyhnite sa sladkostiam."] },
-              "24": { "benefits": ["Aktivácia autofágie (bunková obnova).", "Zníženie zápalových procesov."], "refeed": ["Začnite veľmi ľahkým jedlom (polievka).", "Počkajte 1-2 hodiny pred väčším jedlom."] },
-              "36": { "benefits": ["Intenzívna autofágia.", "Zvýšená produkcia rastového hormónu."], "refeed": ["Začnite tekutinami (vývar, smoothie).", "Postupne pridávajte ľahké bielkoviny."] },
-              "48": { "benefits": ["Hlboká ketóza a detoxikácia.", "Podpora obnovy tkanív."], "refeed": ["Veľmi opatrne: začnite kostným vývarom.", "Až po pár hodinách pridajte tuhú stravu."] },
-              "72": { "benefits": ["Regenerácia imunitného systému.", "Maximálna autofágia a mentálna jasnosť."], "refeed": ["Extrémne opatrne: iba tekutiny na začiatok.", "Vyhnite sa ťažkým jedlám aspoň 24 hodín."] }
+              "12": {
+                "title": "12-hodinový pôst",
+                "benefits": [
+                  "Hladina glukózy sa znižuje a telo začína využívať zásoby glykogénu.",
+                  "Tráviaci systém dostáva pauzu a zlepšuje sa jeho regenerácia.",
+                  "Môžeš cítiť ľahší pocit v tele a lepšiu kvalitu spánku."
+                ],
+                "refeed": [
+                  "Začni malým jedlom s nízkym obsahom cukru.",
+                  "Ľahké bielkoviny (vajíčko, jogurt) alebo zelenina.",
+                  "Vyhni sa ťažkým mastným jedlám hneď po pôste."
+                ]
+              },
+              "16": {
+                "title": "16-hodinový pôst",
+                "benefits": [
+                  "Zvyšuje sa citlivosť na inzulín, čo pomáha regulovať hladinu cukru.",
+                  "Telo začína mierne využívať tukové zásoby ako zdroj energie.",
+                  "Môžeš pocítiť lepšie sústredenie a viac energie počas dňa."
+                ],
+                "refeed": [
+                  "Začni ľahkým jedlom s vlákninou alebo zeleninovým vývarom.",
+                  "Dobre sú ľahko stráviteľné bielkoviny (kuracie mäso, ryba).",
+                  "Vyhni sa veľkým dávkam sladkostí alebo alkoholu."
+                ]
+              },
+              "24": {
+                "title": "24-hodinový pôst",
+                "benefits": [
+                  "Telo prechádza do procesu autofágie – bunky začínajú opravovať a recyklovať poškodené časti.",
+                  "Dochádza k zníženiu zápalových procesov v tele.",
+                  "Energia sa stabilizuje a nastáva mentálna jasnosť."
+                ],
+                "refeed": [
+                  "Začni veľmi ľahkým jedlom – vývar, polievka alebo dusená zelenina.",
+                  "Počkajte 1–2 hodiny a až potom konzumujte väčšie jedlo.",
+                  "Vyhýbaj sa mastným a ťažkým jedlám, aby si nezaťažil trávenie."
+                ]
+              },
+              "36": {
+                "title": "36-hodinový pôst",
+                "benefits": [
+                  "Autofágia prebieha intenzívnejšie, telo opravuje bunky a tkanivá.",
+                  "Hormonálna rovnováha sa zlepšuje, rastový hormón stúpa.",
+                  "Môže dôjsť k hlbšiemu pocitu pokoja a očisty organizmu."
+                ],
+                "refeed": [
+                  "Začni malými dávkami tekutín – vývar, smoothies alebo zeleninová polievka.",
+                  "Po 30–60 minútach môžeš pridať ľahké bielkoviny a zeleninu.",
+                  "Neodporúča sa okamžite veľké jedlo – postupne zvyšuj objem."
+                ]
+              },
+              "48": {
+                "title": "48-hodinový pôst",
+                "benefits": [
+                  "Dochádza k výraznému detoxikačnému procesu – bunky sú hlboko regenerované.",
+                  "Výrazne stúpa hladina rastového hormónu, čo podporuje obnovu tkanív.",
+                  "Telo sa prepína do hlbokej ketózy a spaľuje tuky ako hlavný zdroj energie."
+                ],
+                "refeed": [
+                  "Začni pomaly – odporúča sa 1–2 malé porcie vývaru alebo varená zelenina.",
+                  "Postupne pridaj ľahké bielkoviny (ryba, kuracie mäso).",
+                  "Až po pár hodinách môžeš zaradiť komplexnejšie jedlo."
+                ]
+              },
+              "72": {
+                "title": "72-hodinový pôst",
+                "benefits": [
+                  "Imunitný systém prechádza hlbokou regeneráciou – vznikajú nové imunitné bunky.",
+                  "Telo je v intenzívnej autofágii, dochádza k maximálnej očiste buniek.",
+                  "Spaľovanie tukov je dominantné, telo funguje v stabilnej ketóze.",
+                  "Mnoho ľudí zažíva hlbokú mentálnu čistotu a pocit znovuzrodenia."
+                ],
+                "refeed": [
+                  "Začni veľmi opatrne – malá dávka vývaru alebo tekutá polievka.",
+                  "Počkajte aspoň 1–2 hodiny pred ďalším jedlom.",
+                  "Vyhni sa alkoholu, mastným a veľmi ťažkým jedlám aspoň 24 hodín po ukončení.",
+                  "Dôležitá je postupnosť – malými krokmi obnovuj trávenie."
+                ]
+              }
             };
 
             // --- Dáta programov ---
             const programsData = [
                 { id: 12, title: "12-hodinový pôst", desc: "Základný cyklus, ideálny pre začiatočníkov.", icon: 'sunrise' },
-                { id: 16, title: "16-hodinový pôst", desc: "Populárna metóda 16/8.", icon: 'clock' },
-                { id: 24, title: "24-hodinový pôst", desc: "Aktivuje bunkovú obnovu.", icon: 'recycle' },
-                { id: 36, title: "36-hodinový pôst", desc: "Pre pokročilých, metabolický reset.", icon: 'zap' },
-                { id: 48, title: "48-hodinový pôst", desc: "Zlepšuje inzulínovú senzitivitu.", icon: 'shield-check' },
-                { id: 72, title: "72-hodinový pôst", desc: "Vyžaduje lekársky dohľad.", icon: 'gem' },
+                { id: 16, title: "16-hodinový pôst", desc: "Populárna metóda 16/8, podporuje spaľovanie tukov.", icon: 'clock' },
+                { id: 24, title: "24-hodinový pôst", desc: "Aktivuje bunkovú obnovu (autofágiu).", icon: 'recycle' },
+                { id: 36, title: "36-hodinový pôst", desc: "Pre pokročilých, podporuje metabolický reset.", icon: 'zap' },
+                { id: 48, title: "48-hodinový pôst", desc: "Zlepšuje inzulínovú senzitivitu. Len so skúsenosťami.", icon: 'shield-check' },
+                { id: 72, title: "72-hodinový pôst", desc: "Vyžaduje lekársky dohľad a opatrný refeeding.", icon: 'gem' },
             ];
 
             // --- Stav aplikácie ---
@@ -409,83 +410,21 @@
             const radius = 45;
             const circumference = 2 * Math.PI * radius;
 
-            // --- Logika pre Vizualizáciu Priebehu ---
-            const vizDataPoints = {
-                insulin: [{t:0,v:1},{t:4,v:0.8},{t:12,v:0.4},{t:18,v:0.2},{t:24,v:0.1},{t:72,v:0.1}],
-                ketones: [{t:0,v:0},{t:12,v:0},{t:16,v:0.1},{t:24,v:0.6},{t:36,v:0.9},{t:48,v:1},{t:72,v:1}],
-                autophagy: [{t:0,v:0},{t:16,v:0},{t:18,v:0.1},{t:24,v:0.4},{t:36,v:0.8},{t:48,v:1},{t:72,v:0.9}],
-                hgh: [{t:0,v:0.1},{t:24,v:0.1},{t:36,v:0.6},{t:48,v:1},{t:72,v:0.8}]
-            };
-
-            function interpolate(points, time) {
-                const p1 = points.filter(p => p.t <= time).pop() || points[0];
-                const p2 = points.filter(p => p.t > time)[0] || points[points.length-1];
-                if (p1 === p2) return p1.v;
-                const factor = (time - p1.t) / (p2.t - p1.t);
-                return p1.v + factor * (p2.v - p1.v);
-            }
-
-            const chartData = Array.from({length: 73}, (_, i) => ({
-                hour: i,
-                insulin: interpolate(vizDataPoints.insulin, i),
-                ketony: interpolate(vizDataPoints.ketones, i),
-                autofagia: interpolate(vizDataPoints.autophagy, i),
-                hgh: interpolate(vizDataPoints.hgh, i)
-            }));
-
-            function updateVizStatus(hours) {
-                const insulin = interpolate(vizDataPoints.insulin, hours);
-                const ketones = interpolate(vizDataPoints.ketones, hours);
-                const autophagy = interpolate(vizDataPoints.autophagy, hours);
-                const hgh = interpolate(vizDataPoints.hgh, hours);
-                
-                igStatus.textContent = insulin > 0.5 ? 'Vysoká' : insulin > 0.2 ? 'Klesajúca' : 'Nízka';
-                ketonesStatus.textContent = ketones < 0.1 ? 'Žiadne' : ketones < 0.5 ? 'Nízke' : 'Vysoké';
-                autophagyStatus.textContent = autophagy < 0.1 ? 'Minimálna' : autophagy < 0.6 ? 'Zvýšená' : 'Maximálna';
-                hghStatus.textContent = hgh < 0.2 ? 'Normálna' : hgh < 0.7 ? 'Zvýšený' : 'Vysoký';
-            }
-            
-            function renderTimelineChart(currentTime) {
-                const element = React.createElement(ResponsiveContainer, { width: "100%", height: 300 },
-                    React.createElement(LineChart, { data: chartData, margin: { top: 5, right: 20, left: -10, bottom: 5 } },
-                        React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "#334155" }),
-                        React.createElement(XAxis, { dataKey: "hour", type: "number", domain: [0, 72], stroke: "#94A3B8" }),
-                        React.createElement(YAxis, { hide: true, domain: [0, 1.1] }),
-                        React.createElement(Tooltip, { contentStyle: { backgroundColor: '#1E293B' } }),
-                        React.createElement(Legend, { payload: [
-                            { value: 'Inzulín/Glukóza', type: 'line', color: '#F43F5E' },
-                            { value: 'Ketóny', type: 'line', color: '#FBBF24' },
-                            { value: 'Autofágia', type: 'line', color: '#34D399' },
-                            { value: 'Rastový Hormón', type: 'line', color: '#38BDF8' }
-                        ]}),
-                        React.createElement(Line, { type: "monotone", dataKey: "insulin", stroke: "#F43F5E", strokeWidth: 2, dot: false, name: "Inzulín/Glukóza" }),
-                        React.createElement(Line, { type: "monotone", dataKey: "ketony", stroke: "#FBBF24", strokeWidth: 2, dot: false, name: "Ketóny" }),
-                        React.createElement(Line, { type: "monotone", dataKey: "autofagia", stroke: "#34D399", strokeWidth: 2, dot: false, name: "Autofágia" }),
-                        React.createElement(Line, { type: "monotone", dataKey: "hgh", stroke: "#38BDF8", strokeWidth: 2, dot: false, name: "Rastový Hormón" }),
-                        React.createElement(ReferenceLine, { x: currentTime, stroke: "#E2E8F0", strokeWidth: 2 })
-                    )
-                );
-                ReactDOM.render(element, document.getElementById('timeline-chart'));
-            }
-
-            timelineSlider.addEventListener('input', (e) => {
-                const hours = parseFloat(e.target.value);
-                sliderTimeLabel.textContent = `${hours.toFixed(1)} hodín`;
-                updateVizStatus(hours);
-                renderTimelineChart(hours);
-            });
-
-
             // --- Funkcie pre gradient farby ---
             function hexToRgb(hex) {
                 let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-                return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : null;
+                return result ? {
+                    r: parseInt(result[1], 16),
+                    g: parseInt(result[2], 16),
+                    b: parseInt(result[3], 16)
+                } : null;
             }
 
             function lerpColor(color1, color2, factor) {
                 const c1 = hexToRgb(color1);
                 const c2 = hexToRgb(color2);
                 if (!c1 || !c2) return color1;
+
                 const r = Math.round(c1.r + factor * (c2.r - c1.r));
                 const g = Math.round(c1.g + factor * (c2.g - c1.g));
                 const b = Math.round(c1.b + factor * (c2.b - c1.b));
@@ -498,8 +437,9 @@
                     Notification.requestPermission();
                 }
             }
-            
+
             // --- Logika časovača s localStorage ---
+
             function getFastState() {
                 return {
                     state: localStorage.getItem('fastState') || 'stopped',
@@ -531,30 +471,31 @@
                 if (!protocol) return;
 
                 completionTitle.textContent = `Gratulujeme! Dokončil/a si svoj ${programHours}-hodinový pôst`;
+                
                 const now = new Date();
-                const formattedEndTime = now.toLocaleString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                const formattedEndTime = now.toLocaleString('sk-SK', {
+                    day: 'numeric', month: 'long', year: 'numeric', 
+                    hour: '2-digit', minute: '2-digit'
+                }).replace(',', '');
                 completionTime.textContent = `Pôst ukončený: ${formattedEndTime}`;
+
                 completionBenefits.innerHTML = protocol.benefits.map(b => `<li>${b}</li>`).join('');
                 completionRefeed.innerHTML = protocol.refeed.map(r => `<li>${r}</li>`).join('');
+
                 completionModal.classList.remove('hidden');
             }
 
+
             function tick() {
                 const { state, startTime, totalPausedMs, programHours } = getFastState();
+                
                 if (state !== 'running') return;
 
                 const totalDurationSec = programHours * 3600;
                 const elapsedMs = Date.now() - startTime - totalPausedMs;
                 const remainingSeconds = Math.max(0, totalDurationSec - Math.floor(elapsedMs / 1000));
-                const elapsedHours = elapsedMs / (1000 * 3600);
 
                 updateDisplay(remainingSeconds, totalDurationSec);
-                
-                // Synchronizácia s vizualizáciou
-                timelineSlider.value = elapsedHours;
-                sliderTimeLabel.textContent = `${elapsedHours.toFixed(1)} hodín`;
-                updateVizStatus(elapsedHours);
-                renderTimelineChart(elapsedHours);
 
                 if (remainingSeconds <= 0) {
                     stopTimer(true);
@@ -563,48 +504,66 @@
             
             function startTimer() {
                 requestNotificationPermission();
-                setFastState({ state: 'running', startTime: Date.now(), pauseTime: 0, totalPausedMs: 0, programHours: selectedProgram });
+                setFastState({
+                    state: 'running',
+                    startTime: Date.now(),
+                    pauseTime: 0,
+                    totalPausedMs: 0,
+                    programHours: selectedProgram
+                });
+                
                 if (timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(tick, 1000);
+                
                 updateButtonUI('running');
-                visualizationSection.classList.remove('hidden');
                 tick();
             }
 
             function pauseTimer() {
                 const { state, pauseTime } = getFastState();
-                if (state === 'running') {
+
+                if (state === 'running') { // Pause
                     setFastState({ state: 'paused', pauseTime: Date.now() });
                     if (timerInterval) clearInterval(timerInterval);
                     updateButtonUI('paused');
-                } else if (state === 'paused') {
+                } else if (state === 'paused') { // Resume
                     const pausedDuration = Date.now() - pauseTime;
                     const { totalPausedMs } = getFastState();
-                    setFastState({ state: 'running', pauseTime: 0, totalPausedMs: totalPausedMs + pausedDuration });
+                    setFastState({
+                        state: 'running',
+                        pauseTime: 0,
+                        totalPausedMs: totalPausedMs + pausedDuration
+                    });
                     if (timerInterval) clearInterval(timerInterval);
                     timerInterval = setInterval(tick, 1000);
                     updateButtonUI('running');
                 }
-                updateStatusUI();
+                 updateStatusUI();
             }
             
             function stopTimer(completed = false) {
                 clearInterval(timerInterval);
                 timerInterval = null;
+                
                 const { programHours } = getFastState();
+
                 if (completed) {
                     showCompletionModal(programHours);
                 } else {
                     fastStage.textContent = "Pôst zastavený";
-                    adaptiveTip.textContent = "Každý krok sa počíta.";
+                    adaptiveTip.textContent = "Každý krok sa počíta. Nabudúce to pôjde lepšie!";
                 }
+                
                 const lastProgram = getFastState().programHours;
                 clearFastState();
                 setFastState({ state: 'stopped', programHours: lastProgram });
                 updateButtonUI('stopped');
-                visualizationSection.classList.add('hidden');
+                
+                // Zobrazí sa modálne okno, takže UI resetujeme až po jeho zatvorení
                 if (!completed) {
-                    setTimeout(() => resetUIToProgram(programHours), 3000);
+                    setTimeout(() => {
+                        resetUIToProgram(programHours);
+                    }, 3000);
                 }
             }
             
@@ -612,25 +571,26 @@
                 const state = getFastState();
                 selectedProgram = state.programHours;
                 generateProgramCards();
+                
                 if (state.state === 'running' || state.state === 'paused') {
-                    visualizationSection.classList.remove('hidden');
                     if (timerInterval) clearInterval(timerInterval);
                     if(state.state === 'running') {
                         timerInterval = setInterval(tick, 1000);
                     }
-                    tick();
+                    updateButtonUI(state.state);
                 } else {
-                    visualizationSection.classList.add('hidden');
                     resetUIToProgram(selectedProgram);
+                    updateButtonUI('stopped');
                 }
-                updateButtonUI(state.state);
                 updateStatusUI();
             }
 
+            // --- UI Funkcie ---
             function updateButtonUI(state) {
                 startBtn.classList.toggle('hidden', state !== 'stopped');
                 pauseBtn.classList.toggle('hidden', state === 'stopped');
                 stopBtn.classList.toggle('hidden', state === 'stopped');
+
                 if (state === 'paused') {
                     pauseBtn.innerHTML = `<i data-lucide="play" class="w-5 h-5"></i>Pokračovať`;
                 } else {
@@ -647,8 +607,18 @@
                     const card = document.createElement('div');
                     card.className = `program-card card rounded-xl p-6 cursor-pointer border-2 ${isSelected ? 'selected' : 'border-transparent'} ${state !== 'stopped' ? 'opacity-50 cursor-not-allowed' : ''}`;
                     card.dataset.duration = p.id;
-                    card.innerHTML = `<div class="flex items-center gap-4 mb-3"><div class="bg-slate-700/50 p-3 rounded-lg"><i data-lucide="${p.icon}" class="w-6 h-6 text-sky-400"></i></div><h3 class="text-xl font-bold text-white">${p.title}</h3></div><p class="text-slate-400">${p.desc}</p>`;
-                    card.addEventListener('click', () => { if (getFastState().state === 'stopped') { selectProgram(p.id) } });
+                    card.innerHTML = `
+                        <div class="flex items-center gap-4 mb-3">
+                            <div class="bg-slate-700/50 p-3 rounded-lg"><i data-lucide="${p.icon}" class="w-6 h-6 text-sky-400"></i></div>
+                            <h3 class="text-xl font-bold text-white">${p.title}</h3>
+                        </div>
+                        <p class="text-slate-400">${p.desc}</p>
+                    `;
+                    card.addEventListener('click', () => {
+                        if (getFastState().state === 'stopped') {
+                            selectProgram(p.id)
+                        }
+                    });
                     programsContainer.appendChild(card);
                 });
                 lucide.createIcons();
@@ -671,12 +641,16 @@
                 const minutes = Math.floor((secondsRemaining % 3600) / 60);
                 const seconds = secondsRemaining % 60;
                 timeDisplay.textContent = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                
                 const progress = totalDurationSec > 0 ? (totalDurationSec - secondsRemaining) / totalDurationSec : 0;
                 const offset = circumference * (1 - progress);
                 progressCircle.style.strokeDashoffset = offset;
-                const startColor = "#38BDF8";
-                const endColor = "#FBBF24";
+
+                // Gradient farby
+                const startColor = "#38BDF8"; // Sky 400
+                const endColor = "#FBBF24";   // Amber 400
                 progressCircle.style.stroke = lerpColor(startColor, endColor, progress);
+
                 updateStatusUI();
             }
             
@@ -688,44 +662,97 @@
                     elapsedMs = Date.now() - startTime - totalPausedMs;
                     hoursElapsed = elapsedMs / (1000 * 3600);
                 }
+                
                 let stage = "Pripravený na štart";
                 let tip = "Vyberte si program a stlačte štart.";
                 let useHtml = false;
+
                 if (state === 'running' || state === 'paused') {
-                    if (hoursElapsed < 4) { stage = "Trávenie"; } else if (hoursElapsed < 12) { stage = "Začiatok spaľovania tukov"; } else if (hoursElapsed < 18) { stage = "Spaľovanie tukov"; } else if (hoursElapsed < 24) { stage = "Autofágia aktivovaná"; } else if (hoursElapsed < 48) { stage = "Hlboká ketóza"; } else { stage = "Maximálna autofágia"; }
+                    // --- Logika pre Fázu Pôstu ---
+                    if (hoursElapsed < 4) {
+                        stage = "Trávenie";
+                    } else if (hoursElapsed < 12) {
+                        stage = "Začiatok spaľovania tukov";
+                    } else if (hoursElapsed < 18) {
+                        stage = "Spaľovanie tukov";
+                    } else if (hoursElapsed < 24) {
+                        stage = "Autofágia aktivovaná";
+                    } else if (hoursElapsed < 48) {
+                        stage = "Hlboká ketóza";
+                    } else {
+                        stage = "Maximálna autofágia";
+                    }
+
+                    // --- Logika pre Adaptívny Tip ---
                     const TEN_MINUTES_MS = 10 * 60 * 1000;
                     if (elapsedMs < TEN_MINUTES_MS && startTime > 0) {
                         const endTime = new Date(startTime + programHours * 3600 * 1000);
-                        const formattedEndTime = endTime.toLocaleString('sk-SK', { day: 'numeric', month: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' }).replace(',', '');
+                        const formattedEndTime = endTime.toLocaleString('sk-SK', {
+                            day: 'numeric', month: 'numeric', year: 'numeric', 
+                            hour: '2-digit', minute: '2-digit'
+                        }).replace(',', '');
                         tip = `<strong>Koniec pôstu:</strong> ${formattedEndTime}`;
                         useHtml = true;
                     } else {
-                        if (stage === "Trávenie") { tip = "Telo spracováva posledné jedlo."; } else if (stage === "Začiatok spaľovania tukov") { tip = "Zásoby glykogénu sa míňajú. Pite vodu."; } else if (stage === "Spaľovanie tukov") { tip = "Telo začína produkovať ketóny."; } else if (stage === "Autofágia aktivovaná") { tip = "Začína sa proces bunkovej obnovy."; } else if (stage === "Hlboká ketóza") { tip = "Telo je v plnom režime spaľovania tukov."; } else { tip = "Dosahujete maximálne benefity."; }
+                        // Bežné adaptívne tipy po 10 minútach
+                        if (stage === "Trávenie") {
+                            tip = "Telo spracováva posledné jedlo. Hladina cukru je stabilná.";
+                        } else if (stage === "Začiatok spaľovania tukov") {
+                            tip = "Zásoby glykogénu sa míňajú. Pite dostatok vody.";
+                        } else if (stage === "Spaľovanie tukov") {
+                            tip = "Telo začína produkovať ketóny ako zdroj energie.";
+                        } else if (stage === "Autofágia aktivovaná") {
+                            tip = "Začína sa proces bunkovej obnovy. Gratulujeme!";
+                        } else if (stage === "Hlboká ketóza") {
+                            tip = "Telo je v plnom režime spaľovania tukov. Sledujte príznaky a doplňte elektrolyty.";
+                        } else { // Maximálna autofágia
+                            tip = "Dosahujete maximálne benefity. Pri dlhých pôstoch je kľúčová opatrnosť.";
+                        }
                     }
                 }
-                if (state === 'paused') { stage = "Pauza"; }
+                
+                if (state === 'paused'){
+                    stage = "Pauza";
+                }
+
                 fastStage.textContent = stage;
-                if (useHtml) { adaptiveTip.innerHTML = tip; } else { adaptiveTip.textContent = tip; }
+                if (useHtml) {
+                    adaptiveTip.innerHTML = tip;
+                } else {
+                    adaptiveTip.textContent = tip;
+                }
             }
 
+            // --- Inicializácia ---
             function init() {
                 progressCircle.style.strokeDasharray = circumference;
                 progressCircle.style.strokeDashoffset = circumference;
-                renderTimelineChart(0);
-                updateVizStatus(0);
                 restoreTimerState();
             }
 
+            // --- Event Listeners ---
             startBtn.addEventListener('click', startTimer);
             pauseBtn.addEventListener('click', pauseTimer);
             stopBtn.addEventListener('click', () => stopTimer(false));
-            menuToggle.addEventListener('click', (e) => { e.stopPropagation(); menuPanel.classList.toggle('hidden'); });
-            document.addEventListener('click', (e) => { if (!menuPanel.contains(e.target) && !menuToggle.contains(e.target)) { menuPanel.classList.add('hidden'); } });
+            
+            menuToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menuPanel.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', (e) => {
+                if (!menuPanel.contains(e.target) && !menuToggle.contains(e.target)) {
+                    menuPanel.classList.add('hidden');
+                }
+            });
+
             closeCompletionModal.addEventListener('click', () => {
                 completionModal.classList.add('hidden');
                 const lastProgram = getFastState().programHours;
                 resetUIToProgram(lastProgram);
             });
+
+
             init();
         });
     </script>
@@ -733,17 +760,66 @@
     <!-- COOKIE LIŠTA v2.0 START -->
     <script type="text/javascript">
         var options={
-            box_umisteni:"bottom:0;left:0;", box_sirka:"100%", box_odsazeni:"0px", box_odsazeni_obsah:"20px", box_zaobleni: "0px", box_stin_ver:"-5px", box_stin_roz:"15px", box_stin_barva:"rgba(0,0,0,0.2)",
-            pozadi_obrazek:"", pozadi_barva:"rgb(30, 41, 59)", title:"Používame súbory cookie", title_color:"#FFFFFF", title_size:"18px",
+            // Nastavenie pre plnú šírku na spodnej časti obrazovky
+            box_umisteni:"bottom:0;left:0;",
+            box_sirka:"100%",
+            box_odsazeni:"0px",
+            box_odsazeni_obsah:"20px",
+            box_zaobleni: "0px",
+            box_stin_ver:"-5px",
+            box_stin_roz:"15px",
+            box_stin_barva:"rgba(0,0,0,0.2)",
+            
+            // Vizuálne zladenie s dizajnom stránky
+            pozadi_obrazek:"", // Bez obrázku na pozadí
+            pozadi_barva:"rgb(30, 41, 59)", // Farba pozadia zhodná s kartami (#1E293B)
+            title:"Používame súbory cookie",
+            title_color:"#FFFFFF",
+            title_size:"18px",
             popis:"Naše webové stránky využívajú súbory cookie na zlepšenie vášho zážitku. Súhlasom nám pomáhate analyzovať návštevnosť a personalizovať obsah.",
-            popis_color:"#CBD5E1", popis_size:"14px", odkaz_text:"Viac informácií", odkaz_url:"https://www.cookie-lista.cz/co-je-cookies.html", odkaz_color:"#38BDF8", odkaz_color_hover:"#7DD3FC",
-            tlacitko_1_text:"Povoliť všetko", tlacitko_1_padding:"12px 24px", tlacitko_1_margin:"10px", tlacitko_1_text_barva:"#0F172A", tlacitko_1_pozadi:"#38BDF8", tlacitko_1_text_velikost:"14px", tlacitko_1_text_barva_hover:"#0F172A", tlacitko_1_pozadi_hover:"#7DD3FC", tlacitko_1_radius:"8px",
-            tlacitko_2_text:"Iba nevyhnutné", tlacitko_2_padding:"12px 24px", tlacitko_2_margin:"10px", tlacitko_2_text_barva:"#E2E8F0", tlacitko_2_pozadi:"#334155", tlacitko_2_text_velikost:"14px", tlacitko_2_text_barva_hover:"#FFFFFF", tlacitko_2_pozadi_hover:"#475569", tlacitko_2_radius:"8px",
-            delay: 1500, expires: 365, uncheckBoxes: true, tvurce: false,
+            popis_color:"#CBD5E1",
+            popis_size:"14px",
+            odkaz_text:"Viac informácií",
+            odkaz_url:"https://www.cookie-lista.cz/co-je-cookies.html",
+            odkaz_color:"#38BDF8", // Primárna modrá farba
+            odkaz_color_hover:"#7DD3FC",
+
+            // Primárne tlačidlo (Povoliť všetko)
+            tlacitko_1_text:"Povoliť všetko",
+            tlacitko_1_padding:"12px 24px",
+            tlacitko_1_margin:"10px",
+            tlacitko_1_text_barva:"#0F172A", // Text farba pre primárne tlačidlo
+            tlacitko_1_pozadi:"#38BDF8", // Pozadie primárneho tlačidla
+            tlacitko_1_text_velikost:"14px",
+            tlacitko_1_text_barva_hover:"#0F172A",
+            tlacitko_1_pozadi_hover:"#7DD3FC",
+            tlacitko_1_radius:"8px",
+
+            // Sekundárne tlačidlo (Iba nevyhnutné)
+            tlacitko_2_text:"Iba nevyhnutné",
+            tlacitko_2_padding:"12px 24px",
+            tlacitko_2_margin:"10px",
+            tlacitko_2_text_barva:"#E2E8F0", // Text farba pre sekundárne tlačidlo
+            tlacitko_2_pozadi:"#334155", // Pozadie sekundárneho tlačidla
+            tlacitko_2_text_velikost:"14px",
+            tlacitko_2_text_barva_hover:"#FFFFFF",
+            tlacitko_2_pozadi_hover:"#475569",
+            tlacitko_2_radius:"8px",
+
+            // Ostatné nastavenia
+            delay: 1500,
+            expires: 365,
+            uncheckBoxes: true,
+            tvurce: false,
         }
-        $(document).ready(function() { $('body').ihavecookies(options); });
+
+    $(document).ready(function() {
+        $('body').ihavecookies(options);
+    });
     </script>
     <!-- COOKIE LIŠTA v2.0 KONIEC -->
 </body>
 </html>
+
+
 
