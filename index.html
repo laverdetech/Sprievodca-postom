@@ -148,7 +148,15 @@
             </div>
 
             <div class="border-t border-slate-700 p-8 pt-6 flex-shrink-0">
-                 <p class="text-sm text-center text-slate-400 mb-6"><i data-lucide="alert-circle" class="inline-block w-4 h-4 mr-1"></i>Počas pôstu je kľúčové nekonzumovať žiadne kalórie. Akékoľvek jedlo alebo sladený nápoj preruší procesy v tele.</p>
+                 <p class="text-sm text-center text-slate-400 mb-4"><i data-lucide="alert-circle" class="inline-block w-4 h-4 mr-1"></i>Počas pôstu je kľúčové nekonzumovať žiadne kalórie.</p>
+                 <div class="flex gap-4 mb-4">
+                    <a id="addToGoogleCalendarBtn" href="#" target="_blank" class="w-full text-center bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-3 px-6 rounded-lg text-base flex items-center justify-center gap-2 transition-colors">
+                       <i data-lucide="calendar-plus" class="w-5 h-5"></i>Google
+                    </a>
+                    <a id="addToAppleCalendarBtn" href="#" download="post.ics" class="w-full text-center bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-3 px-6 rounded-lg text-base flex items-center justify-center gap-2 transition-colors">
+                       <i data-lucide="calendar-plus" class="w-5 h-5"></i>Apple
+                   </a>
+                </div>
                  <div class="flex gap-4">
                     <button id="startFastConfirmBtn" class="w-full btn-primary font-bold py-4 px-6 rounded-lg text-lg">Spustiť pôst</button>
                     <button id="cancelFastBtn" class="w-full btn-secondary font-bold py-4 px-6 rounded-lg text-lg">Zrušiť</button>
@@ -467,7 +475,7 @@
             const radius = 45;
             const circumference = 2 * Math.PI * radius;
 
-            // --- Funkcie pre gradient farby ---
+            // --- Pomocné funkcie ---
             function hexToRgb(hex) {
                 let result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
                 return result ? {
@@ -483,9 +491,13 @@
                 if (!c1 || !c2) return color1;
 
                 const r = Math.round(c1.r + factor * (c2.r - c1.r));
-                const g = Math.round(c1.g + factor * (c2.g - c1.b));
+                const g = Math.round(c1.g + factor * (c2.g - c1.g));
                 const b = Math.round(c1.b + factor * (c2.b - c1.b));
                 return `rgb(${r}, ${g}, ${b})`;
+            }
+
+            function toUTCFormat(date) {
+                return date.toISOString().replace(/-|:|\.\d{3}/g, '');
             }
 
             // --- Notifikácie ---
@@ -573,8 +585,8 @@
                     `;
                 }
                 
-                const now = new Date();
-                const endTime = new Date(now.getTime() + programHours * 60 * 60 * 1000);
+                const startTime = new Date();
+                const endTime = new Date(startTime.getTime() + programHours * 60 * 60 * 1000);
                 const formattedEndTime = endTime.toLocaleString('sk-SK', {
                     weekday: 'long',
                     day: 'numeric',
@@ -596,6 +608,38 @@
                 `;
 
                 preparationContent.innerHTML = contentHTML + endTimeHTML;
+                
+                // Kalendárové odkazy
+                const utcStartTime = toUTCFormat(startTime);
+                const utcEndTime = toUTCFormat(endTime);
+                const eventTitle = encodeURIComponent(`Pôst: ${programHours} hodín`);
+                const eventDetails = encodeURIComponent(`Pripomienka ukončenia ${programHours}-hodinového pôstu. Pripravte si ľahké jedlo na bezpečné prerušenie.`);
+
+                // Google Kalendár
+                const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${eventTitle}&dates=${utcStartTime}/${utcEndTime}&details=${eventDetails}`;
+                const addToGoogleCalendarBtn = preparationModal.querySelector('#addToGoogleCalendarBtn');
+                if (addToGoogleCalendarBtn) {
+                    addToGoogleCalendarBtn.href = googleCalendarUrl;
+                }
+                
+                // Apple Kalendár (.ics súbor)
+                const icsContent = [
+                    'BEGIN:VCALENDAR',
+                    'VERSION:2.0',
+                    'BEGIN:VEVENT',
+                    `DTSTART:${utcStartTime}`,
+                    `DTEND:${utcEndTime}`,
+                    `SUMMARY:Pôst: ${programHours} hodín`,
+                    `DESCRIPTION:${decodeURIComponent(eventDetails)}`,
+                    'END:VEVENT',
+                    'END:VCALENDAR'
+                ].join('\n');
+                
+                const addToAppleCalendarBtn = preparationModal.querySelector('#addToAppleCalendarBtn');
+                if (addToAppleCalendarBtn) {
+                     addToAppleCalendarBtn.href = `data:text/calendar;charset=utf8,${encodeURIComponent(icsContent)}`;
+                }
+
 
                 preparationModal.classList.remove('hidden');
                 lucide.createIcons();
