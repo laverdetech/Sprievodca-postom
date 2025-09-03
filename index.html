@@ -131,6 +131,45 @@
             </button>
         </div>
     </div>
+    
+    <!-- Modálne okno pre bezpečnostný kontrolný zoznam -->
+    <div id="safetyChecklistModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-[#1E293B] border border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg fade-in flex flex-col max-h-[90vh]">
+            <div class="p-8 pb-4 text-center flex-shrink-0">
+                <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-rose-500/10 mb-4">
+                    <i data-lucide="shield-plus" class="h-8 w-8 text-rose-400"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-white">Kontrolný Zoznam Bezpečnosti</h2>
+                 <p class="text-slate-400 mt-2">Dlhé pôsty vyžadujú zvýšenú opatrnosť. Prečítajte si prosím nasledujúce body.</p>
+            </div>
+            <div class="text-left space-y-3 overflow-y-auto px-8 flex-grow">
+                <p class="text-slate-300 font-semibold">Tento pôst sa neodporúča, ak sa vás týka niektorý z nasledujúcich bodov:</p>
+                <ul class="list-disc list-inside text-slate-400 space-y-2">
+                    <li>Ste tehotná alebo dojčíte.</li>
+                    <li>Ste dieťa alebo dospievajúci.</li>
+                    <li>Máte v anamnéze poruchy príjmu potravy.</li>
+                    <li>Máte podváhu (BMI &lt; 18.5).</li>
+                    <li>Máte cukrovku 1. typu alebo užívate lieky viazané na jedlo.</li>
+                </ul>
+                <p class="text-slate-300 font-semibold mt-4">Odporúčame konzultáciu s lekárom, ak:</p>
+                 <ul class="list-disc list-inside text-slate-400 space-y-2">
+                    <li>Máte ochorenie žlčníka, žalúdočné vredy alebo iné chronické ochorenia tráviaceho traktu.</li>
+                    <li>Ste žena a máte obavy o svoj menštruačný cyklus.</li>
+                </ul>
+            </div>
+            <div class="border-t border-slate-700 p-8 pt-6 flex-shrink-0">
+                <label for="safetyCheckbox" class="flex items-start space-x-3 mb-6 cursor-pointer">
+                    <input type="checkbox" id="safetyCheckbox" class="mt-1 h-4 w-4 rounded border-slate-500 bg-slate-700 text-sky-500 focus:ring-sky-500">
+                    <span class="text-slate-300">Potvrdzujem, že som si prečítal/a uvedené body, rozumiem rizikám a netýka sa ma žiadna z hlavných kontraindikácií.</span>
+                </label>
+                 <div class="flex gap-4">
+                    <button id="continueToPrepBtn" class="w-full btn-primary font-bold py-4 px-6 rounded-lg text-lg disabled:opacity-50 disabled:cursor-not-allowed" disabled>Pokračovať</button>
+                    <button id="cancelSafetyBtn" class="w-full btn-secondary font-bold py-4 px-6 rounded-lg text-lg">Zrušiť</button>
+                 </div>
+            </div>
+        </div>
+    </div>
+
 
     <!-- Modálne okno pre prípravu na pôst -->
     <div id="preparationModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
@@ -310,7 +349,11 @@
             const preparationContent = document.getElementById('preparationContent');
             const startFastConfirmBtn = document.getElementById('startFastConfirmBtn');
             const cancelFastBtn = document.getElementById('cancelFastBtn');
-
+            
+            const safetyChecklistModal = document.getElementById('safetyChecklistModal');
+            const safetyCheckbox = document.getElementById('safetyCheckbox');
+            const continueToPrepBtn = document.getElementById('continueToPrepBtn');
+            const cancelSafetyBtn = document.getElementById('cancelSafetyBtn');
             
             // --- Modálne okno ---
             const safetyModal = document.getElementById('safetyModal');
@@ -793,6 +836,7 @@
                 setFastState({ programHours: durationHours });
                 resetUIToProgram(durationHours);
                 generateProgramCards();
+                document.getElementById('timer-section').scrollIntoView({ behavior: 'smooth' });
             }
 
             function resetUIToProgram(programHours) {
@@ -947,7 +991,16 @@
 
 
             // --- Event Listeners ---
-            startBtn.addEventListener('click', () => showPreparationModal(selectedProgram));
+            startBtn.addEventListener('click', () => {
+                if (selectedProgram >= 36) {
+                    safetyCheckbox.checked = false; // Reset checkbox
+                    continueToPrepBtn.disabled = true; // Reset button state
+                    safetyChecklistModal.classList.remove('hidden');
+                } else {
+                    showPreparationModal(selectedProgram);
+                }
+            });
+
             pauseBtn.addEventListener('click', pauseTimer);
             stopBtn.addEventListener('click', () => stopTimer(false));
             
@@ -959,7 +1012,19 @@
             cancelFastBtn.addEventListener('click', () => {
                 preparationModal.classList.add('hidden');
             });
+            
+            safetyCheckbox.addEventListener('change', () => {
+                continueToPrepBtn.disabled = !safetyCheckbox.checked;
+            });
 
+            continueToPrepBtn.addEventListener('click', () => {
+                safetyChecklistModal.classList.add('hidden');
+                showPreparationModal(selectedProgram);
+            });
+
+            cancelSafetyBtn.addEventListener('click', () => {
+                safetyChecklistModal.classList.add('hidden');
+            });
             
             menuToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -987,5 +1052,4 @@
     <!-- COOKIE LIŠTA v2.0 KONIEC -->
 </body>
 </html>
-
 
