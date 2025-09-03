@@ -631,6 +631,11 @@
                     `DTEND:${utcEndTime}`,
                     `SUMMARY:Pôst: ${programHours} hodín`,
                     `DESCRIPTION:${decodeURIComponent(eventDetails)}`,
+                    'BEGIN:VALARM',
+                    'ACTION:DISPLAY',
+                    'DESCRIPTION:Váš pôst sa o 30 minút končí!',
+                    'TRIGGER;RELATED=END:-PT30M',
+                    'END:VALARM',
                     'END:VEVENT',
                     'END:VCALENDAR'
                 ].join('\n');
@@ -982,4 +987,5 @@
     <!-- COOKIE LIŠTA v2.0 KONIEC -->
 </body>
 </html>
+
 
