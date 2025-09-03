@@ -113,7 +113,7 @@
             
             <div class="text-left space-y-6">
                 <div>
-                    <h3 class="text-lg font-semibold text-sky-400 mb-2">Získané benefity:</h3>
+                    <h3 class="text-lg font-semibold text-sky-400 mb-2">Čo si týmto pôstom získal/a:</h3>
                     <ul id="completionBenefits" class="list-disc list-inside text-slate-300 space-y-1 pl-2">
                         <!-- Benefity sa vložia sem -->
                     </ul>
@@ -126,9 +126,31 @@
                 </div>
             </div>
 
-            <button id="closeCompletionModal" class="mt-8 w-full btn-primary font-bold py-3 px-6 rounded-lg text-lg">
+            <button id="closeCompletionModal" class="mt-10 w-full btn-primary font-bold py-4 px-6 rounded-lg text-lg">
                 Skvelé!
             </button>
+        </div>
+    </div>
+
+    <!-- Modálne okno pre prípravu na pôst -->
+    <div id="preparationModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="bg-[#1E293B] border border-slate-700 rounded-2xl shadow-2xl w-full max-w-lg p-8 text-center fade-in">
+            <div class="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-sky-500/10 mb-4">
+                <i data-lucide="clipboard-check" class="h-8 w-8 text-sky-400"></i>
+            </div>
+            <h2 id="preparationTitle" class="text-2xl font-bold text-white mb-6">Príprava na pôst</h2>
+            
+            <div id="preparationContent" class="text-left space-y-6">
+                <!-- Obsah sa vloží dynamicky -->
+            </div>
+
+            <div class="mt-8 border-t border-slate-700 pt-6">
+                 <p class="text-sm text-slate-400 mb-6"><i data-lucide="alert-circle" class="inline-block w-4 h-4 mr-1"></i>Počas pôstu je kľúčové nekonzumovať žiadne kalórie. Akékoľvek jedlo alebo sladený nápoj preruší procesy v tele.</p>
+                 <div class="flex gap-4">
+                    <button id="startFastConfirmBtn" class="w-full btn-primary font-bold py-4 px-6 rounded-lg text-lg">Spustiť pôst</button>
+                    <button id="cancelFastBtn" class="w-full btn-secondary font-bold py-4 px-6 rounded-lg text-lg">Zrušiť</button>
+                 </div>
+            </div>
         </div>
     </div>
 
@@ -208,9 +230,9 @@
                                 <p id="adaptive-tip" class="text-slate-300 text-sm">Vyberte si program a stlačte štart pre začatie vašej cesty pôstom.</p>
                             </div>
                             <div class="flex justify-center md:justify-start space-x-4">
-                                <button id="startBtn" class="btn-primary font-bold py-3 px-6 rounded-lg flex items-center gap-2"><i data-lucide="play" class="w-5 h-5"></i>Štart</button>
-                                <button id="pauseBtn" class="btn-secondary font-bold py-3 px-6 rounded-lg hidden items-center gap-2"><i data-lucide="pause" class="w-5 h-5"></i>Pauza</button>
-                                <button id="stopBtn" class="btn-danger font-bold py-3 px-6 rounded-lg hidden items-center gap-2"><i data-lucide="stop-circle" class="w-5 h-5"></i>Stop</button>
+                                <button id="startBtn" class="btn-primary font-bold py-4 px-6 rounded-lg flex items-center gap-2"><i data-lucide="play" class="w-5 h-5"></i>Štart</button>
+                                <button id="pauseBtn" class="btn-secondary font-bold py-4 px-6 rounded-lg hidden items-center gap-2"><i data-lucide="pause" class="w-5 h-5"></i>Pauza</button>
+                                <button id="stopBtn" class="btn-danger font-bold py-4 px-6 rounded-lg hidden items-center gap-2"><i data-lucide="stop-circle" class="w-5 h-5"></i>Stop</button>
                             </div>
                         </div>
                     </div>
@@ -225,36 +247,8 @@
                 </div>
             </section>
             
-            <!-- Sekcia Ako to funguje -->
-            <section id="how-it-works" class="max-w-6xl mx-auto mb-16 fade-in" style="animation-delay: 600ms;">
-                <h2 class="text-3xl md:text-4xl font-bold text-center mb-8 text-white">Ako pôst funguje: Fázy v tele</h2>
-                <div class="grid md:grid-cols-3 gap-6">
-                    <div class="card p-6 rounded-xl">
-                        <div class="flex items-center gap-4 mb-3">
-                            <div class="bg-sky-500/10 p-3 rounded-lg"><i data-lucide="battery-charging" class="w-6 h-6 text-sky-400"></i></div>
-                            <h3 class="text-xl font-bold text-white">Skorá Fáza</h3>
-                        </div>
-                        <p class="text-slate-400"><b>4-18 hodín:</b> Telo spotrebúva uložený glykogén. Hladina cukru a inzulínu klesá, pripravuje sa na spaľovanie tukov.</p>
-                    </div>
-                    <div class="card p-6 rounded-xl">
-                         <div class="flex items-center gap-4 mb-3">
-                            <div class="bg-purple-500/10 p-3 rounded-lg"><i data-lucide="flame" class="w-6 h-6 text-purple-400"></i></div>
-                            <h3 class="text-xl font-bold text-white">Ketóza & Autofágia</h3>
-                        </div>
-                        <p class="text-slate-400"><b>18-48 hodín:</b> Telo prechádza na spaľovanie tukov (ketóza) a aktivuje bunkovú obnovu (autofágia), proces recyklácie poškodených buniek.</p>
-                    </div>
-                    <div class="card p-6 rounded-xl">
-                         <div class="flex items-center gap-4 mb-3">
-                            <div class="bg-teal-500/10 p-3 rounded-lg"><i data-lucide="gem" class="w-6 h-6 text-teal-400"></i></div>
-                            <h3 class="text-xl font-bold text-white">Dlhodobý Pôst</h3>
-                        </div>
-                        <p class="text-slate-400"><b>>48 hodín:</b> Hlboká ketóza a autofágia. Hladina rastového hormónu stúpa. Vyžaduje opatrnosť, hydratáciu a sledovanie elektrolytov.</p>
-                    </div>
-                </div>
-            </section>
-
             <!-- Sekcia Bezpečnosť -->
-            <section id="safety" class="max-w-4xl mx-auto mb-16 fade-in" style="animation-delay: 800ms;">
+            <section id="safety" class="max-w-4xl mx-auto mb-16 fade-in" style="animation-delay: 600ms;">
                 <div class="card rounded-2xl p-6 md:p-10 border-l-4 border-yellow-400 bg-yellow-500/5">
                     <div class="flex items-start gap-4">
                         <i data-lucide="alert-triangle" class="w-8 h-8 text-yellow-400 flex-shrink-0 mt-1"></i>
@@ -292,12 +286,19 @@
             const notificationFallback = document.getElementById('notification-fallback');
             const menuToggle = document.getElementById('menu-toggle');
             const menuPanel = document.getElementById('menu-panel');
+            
             const completionModal = document.getElementById('completionModal');
             const completionTitle = document.getElementById('completionTitle');
             const completionTime = document.getElementById('completionTime');
             const completionBenefits = document.getElementById('completionBenefits');
             const completionRefeed = document.getElementById('completionRefeed');
             const closeCompletionModal = document.getElementById('closeCompletionModal');
+            
+            const preparationModal = document.getElementById('preparationModal');
+            const preparationTitle = document.getElementById('preparationTitle');
+            const preparationContent = document.getElementById('preparationContent');
+            const startFastConfirmBtn = document.getElementById('startFastConfirmBtn');
+            const cancelFastBtn = document.getElementById('cancelFastBtn');
 
             
             // --- Modálne okno ---
@@ -315,9 +316,9 @@
               "12": {
                 "title": "12-hodinový pôst",
                 "benefits": [
-                  "Hladina glukózy sa znižuje a telo začína využívať zásoby glykogénu.",
-                  "Tráviaci systém dostáva pauzu a zlepšuje sa jeho regenerácia.",
-                  "Môžeš cítiť ľahší pocit v tele a lepšiu kvalitu spánku."
+                  "Tvoje telo spotrebovalo prebytočný cukor a začalo čerpať energiu zo zásob.",
+                  "Tvoj tráviaci systém si oddýchol, čo podporilo jeho regeneráciu.",
+                  "Získal/a si lepší spánok a pocit ľahkosti."
                 ],
                 "refeed": [
                   "Začni malým jedlom s nízkym obsahom cukru.",
@@ -328,9 +329,9 @@
               "16": {
                 "title": "16-hodinový pôst",
                 "benefits": [
-                  "Zvyšuje sa citlivosť na inzulín, čo pomáha regulovať hladinu cukru.",
-                  "Telo začína mierne využívať tukové zásoby ako zdroj energie.",
-                  "Môžeš pocítiť lepšie sústredenie a viac energie počas dňa."
+                  "Zvýšil/a si citlivosť na inzulín, čo pomáha lepšie regulovať cukor v krvi.",
+                  "Tvoje telo preplo na spaľovanie tukov ako primárny zdroj energie.",
+                  "Získal/a si viac mentálnej energie a lepšie sústredenie."
                 ],
                 "refeed": [
                   "Začni ľahkým jedlom s vlákninou alebo zeleninovým vývarom.",
@@ -341,9 +342,9 @@
               "24": {
                 "title": "24-hodinový pôst",
                 "benefits": [
-                  "Telo prechádza do procesu autofágie – bunky začínajú opravovať a recyklovať poškodené časti.",
-                  "Dochádza k zníženiu zápalových procesov v tele.",
-                  "Energia sa stabilizuje a nastáva mentálna jasnosť."
+                  "Aktivoval/a si v tele autofágiu – proces bunkovej očisty a recyklácie.",
+                  "Znížil/a si zápalové procesy v tele a podporil/a si svoje zdravie.",
+                  "Tvoja energia sa stabilizovala a dosiahol/a si stav mentálnej jasnosti."
                 ],
                 "refeed": [
                   "Začni veľmi ľahkým jedlom – vývar, polievka alebo dusená zelenina.",
@@ -354,9 +355,9 @@
               "36": {
                 "title": "36-hodinový pôst",
                 "benefits": [
-                  "Autofágia prebieha intenzívnejšie, telo opravuje bunky a tkanivá.",
-                  "Hormonálna rovnováha sa zlepšuje, rastový hormón stúpa.",
-                  "Môže dôjsť k hlbšiemu pocitu pokoja a očisty organizmu."
+                  "Dosiahol/a si hlbokú úroveň autofágie, tvoje telo intenzívne opravuje bunky.",
+                  "Optimalizoval/a si hormonálnu rovnováhu a zvýšil/a si hladinu rastového hormónu.",
+                  "Prešiel/a si výrazným detoxom, ktorý prináša pocit pokoja a očisty."
                 ],
                 "refeed": [
                   "Začni malými dávkami tekutín – vývar, smoothies alebo zeleninová polievka.",
@@ -367,9 +368,9 @@
               "48": {
                 "title": "48-hodinový pôst",
                 "benefits": [
-                  "Dochádza k výraznému detoxikačnému procesu – bunky sú hlboko regenerované.",
-                  "Výrazne stúpa hladina rastového hormónu, čo podporuje obnovu tkanív.",
-                  "Telo sa prepína do hlbokej ketózy a spaľuje tuky ako hlavný zdroj energie."
+                  "Absolvoval/a si hĺbkovú bunkovú regeneráciu vďaka silnej autofágii.",
+                  "Výrazne si podporil/a obnovu tkanív vďaka zvýšenej produkcii rastového hormónu.",
+                  "Tvoje telo efektívne spaľovalo tuky v stave hlbokej ketózy."
                 ],
                 "refeed": [
                   "Začni pomaly – odporúča sa 1–2 malé porcie vývaru alebo varená zelenina.",
@@ -380,10 +381,10 @@
               "72": {
                 "title": "72-hodinový pôst",
                 "benefits": [
-                  "Imunitný systém prechádza hlbokou regeneráciou – vznikajú nové imunitné bunky.",
-                  "Telo je v intenzívnej autofágii, dochádza k maximálnej očiste buniek.",
-                  "Spaľovanie tukov je dominantné, telo funguje v stabilnej ketóze.",
-                  "Mnoho ľudí zažíva hlbokú mentálnu čistotu a pocit znovuzrodenia."
+                    "Naštartoval/a si komplexnú regeneráciu imunitného systému a tvorbu nových buniek.",
+                    "Dosiahol/a si maximálnu úroveň bunkovej očisty (autofágie).",
+                    "Tvoje telo fungovalo v optimálnom režime spaľovania tukov (ketóza).",
+                    "Získal/a si jedinečný stav mentálnej jasnosti a pocit telesného 'reštartu'."
                 ],
                 "refeed": [
                   "Začni veľmi opatrne – malá dávka vývaru alebo tekutá polievka.",
@@ -393,6 +394,59 @@
                 ]
               }
             };
+            
+            // --- Dáta pre prípravné okno ---
+             const preparationProtocols = {
+                "12": {
+                    title: "Príprava na 12-hodinový pôst",
+                    sections: {
+                        "Príprava posledného jedla": ["Posledné jedlo si daj ľahké a vyvážené.", "Vyhni sa ťažkým jedlám a veľkému množstvu cukru pred začiatkom."],
+                        "Odporúčaný čas začiatku": ["<strong>Ideálny začiatok:</strong> Medzi 18:00 - 19:00.", "Ukončením jedla v tomto čase podporíš svoj spánkový cyklus a zosúladíš sa s prirodzeným rytmom tela."],
+                        "Povolené tekutiny": ["Počas pôstu pi čistú vodu alebo nesladený bylinkový čaj."]
+                    }
+                },
+                "16": {
+                    title: "Príprava na 16-hodinový pôst",
+                     sections: {
+                        "Príprava posledného jedla": ["Posledné jedlo by malo byť bohaté na bielkoviny, zdravé tuky a vlákninu, aby si sa cítil/a dlhšie sýty/a.", "Príklad: Grilované kuracie prsia so zeleninovým šalátom a avokádom."],
+                        "Odporúčaný čas začiatku": ["<strong>Ideálny začiatok:</strong> Medzi 15:00 - 16:00.", "Telo má ráno najvyššiu citlivosť na inzulín. Týmto načasovaním ukončíš pôst zdravými raňajkami medzi 7:00 a 8:00 a zosúladíš sa so svojím prirodzeným cirkadiánnym rytmom."],
+                        "Povolené tekutiny": ["Povolená je voda, nesladené čaje a čierna káva bez mlieka a cukru."]
+                    }
+                },
+                "24": {
+                    title: "Príprava na 24-hodinový pôst",
+                     sections: {
+                        "Príprava posledného jedla": ["Deň pred pôstom jedz normálne, ale hydratuj sa viac ako zvyčajne.", "Posledné jedlo zvoľ nutrične bohaté, no nie príliš veľké, aby si nezaťažil/a trávenie."],
+                        "Odporúčaný čas začiatku": ["<strong>Ideálny začiatok:</strong> Po obede, okolo 14:00.", "Pôst tak ukončíš obedom na ďalší deň. Tým sa vyhneš jedeniu neskoro večer a rešpektuješ denný rytmus tela."],
+                        "Povolené tekutiny": ["Kľúčová je hydratácia! Pi vodu, čaj, čiernu kávu.", "Zváž pridanie štipky kvalitnej soli do vody na doplnenie sodíka."]
+                    }
+                },
+                "36": {
+                    title: "Príprava na 36-hodinový pôst",
+                     sections: {
+                        "Príprava posledného jedla": ["Dva dni pred pôstom sa zameraj na čistú stravu a zvýšenú hydratáciu.", "Posledné jedlo by malo byť výživné, s dostatkom bielkovín a zdravých tukov."],
+                        "Odporúčaný čas začiatku": ["<strong>Ideálny začiatok:</strong> Večer okolo 18:00 - 19:00.", "Toto načasovanie maximalizuje súlad s tvojím cirkadiánnym rytmom, keďže sa vyhýbaš jedlu počas celej noci a nasledujúceho dňa."],
+                        "Povolené tekutiny": ["Nezabudni na elektrolyty! Počas dňa si môžeš pripraviť vodu so soľou, prípadne doplniť draslík a horčík.", "Voda, čaj a káva sú tvoji spoločníci."]
+                    }
+                },
+                "48": {
+                    title: "Príprava na 48-hodinový pôst",
+                     sections: {
+                        "Príprava posledného jedla": ["Príprava je kľúčová. Aspoň 2-3 dni vopred jedz ľahkú stravu bez spracovaných potravín.", "Dôkladne sa hydratuj a zváž postupné znižovanie príjmu sacharidov."],
+                        "Odporúčaný čas začiatku": ["<strong>Strategický začiatok:</strong> Po skorej večeri, okolo 18:00.", "Maximalizuješ tak čas spánku počas pôstu a podporíš prirodzené regeneračné procesy tela v noci."],
+                        "Povolené tekutiny": ["<strong>Elektrolyty sú nevyhnutné!</strong> Pravidelne dopĺňaj sodík, draslík a horčík, aby si predišiel/la slabosti a bolestiam hlavy."]
+                    }
+                },
+                "72": {
+                    title: "Príprava na 72-hodinový pôst",
+                     sections: {
+                        "Príprava posledného jedla": ["Tento pôst vyžaduje skúsenosti. Týždeň vopred sa vyhýbaj cukru a spracovaným jedlám.", "Posledné jedlo musí byť nutrične husté, ale nie ťažké."],
+                        "Odporúčaný čas začiatku": ["<strong>Strategický začiatok:</strong> Večer okolo 18:00.", "Tým si zabezpečíš, že najťažšie fázy budú zahŕňať spánok a rešpektuješ denný cyklus tela."],
+                        "Povolené tekutiny": ["<strong>Prísny režim elektrolytov je absolútne kritický pre bezpečnosť.</strong> Monitoruj, ako sa cítiš a neváhaj pôst prerušiť, ak sa cítiš zle."]
+                    }
+                }
+            };
+
 
             // --- Dáta programov ---
             const programsData = [
@@ -426,7 +480,7 @@
                 if (!c1 || !c2) return color1;
 
                 const r = Math.round(c1.r + factor * (c2.r - c1.r));
-                const g = Math.round(c1.g + factor * (c2.g - c1.g));
+                const g = Math.round(c1.g + factor * (c2.g - c1.b));
                 const b = Math.round(c1.b + factor * (c2.b - c1.b));
                 return `rgb(${r}, ${g}, ${b})`;
             }
@@ -438,32 +492,45 @@
                 }
             }
 
-            // --- Logika časovača s localStorage ---
+            // --- Logika časovača s localStorage (zabezpečená) ---
 
             function getFastState() {
-                return {
-                    state: localStorage.getItem('fastState') || 'stopped',
-                    startTime: parseInt(localStorage.getItem('fastStartTime') || '0'),
-                    pauseTime: parseInt(localStorage.getItem('fastPauseTime') || '0'),
-                    totalPausedMs: parseInt(localStorage.getItem('fastTotalPausedMs') || '0'),
-                    programHours: parseInt(localStorage.getItem('fastProgramHours') || '16'),
-                };
+                try {
+                    return {
+                        state: localStorage.getItem('fastState') || 'stopped',
+                        startTime: parseInt(localStorage.getItem('fastStartTime') || '0', 10),
+                        pauseTime: parseInt(localStorage.getItem('fastPauseTime') || '0', 10),
+                        totalPausedMs: parseInt(localStorage.getItem('fastTotalPausedMs') || '0', 10),
+                        programHours: parseInt(localStorage.getItem('fastProgramHours') || '16', 10),
+                    };
+                } catch (e) {
+                    console.warn("localStorage nie je k dispozícii. Stav nebude uložený.", e);
+                    return { state: 'stopped', startTime: 0, pauseTime: 0, totalPausedMs: 0, programHours: 16 };
+                }
             }
 
             function setFastState(newState) {
-                const state = { ...getFastState(), ...newState };
-                localStorage.setItem('fastState', state.state);
-                localStorage.setItem('fastStartTime', state.startTime);
-                localStorage.setItem('fastPauseTime', state.pauseTime);
-                localStorage.setItem('fastTotalPausedMs', state.totalPausedMs);
-                localStorage.setItem('fastProgramHours', state.programHours);
+                try {
+                    const state = { ...getFastState(), ...newState };
+                    localStorage.setItem('fastState', state.state);
+                    localStorage.setItem('fastStartTime', state.startTime.toString());
+                    localStorage.setItem('fastPauseTime', state.pauseTime.toString());
+                    localStorage.setItem('fastTotalPausedMs', state.totalPausedMs.toString());
+                    localStorage.setItem('fastProgramHours', state.programHours.toString());
+                } catch (e) {
+                    console.warn("localStorage nie je k dispozícii. Stav sa nepodarilo uložiť.", e);
+                }
             }
             
             function clearFastState() {
-                localStorage.removeItem('fastState');
-                localStorage.removeItem('fastStartTime');
-                localStorage.removeItem('fastPauseTime');
-                localStorage.removeItem('fastTotalPausedMs');
+                 try {
+                    localStorage.removeItem('fastState');
+                    localStorage.removeItem('fastStartTime');
+                    localStorage.removeItem('fastPauseTime');
+                    localStorage.removeItem('fastTotalPausedMs');
+                } catch (e) {
+                     console.warn("localStorage nie je k dispozícii. Stav sa nepodarilo vymazať.", e);
+                }
             }
 
             function showCompletionModal(programHours) {
@@ -484,6 +551,52 @@
 
                 completionModal.classList.remove('hidden');
             }
+            
+            function showPreparationModal(programHours) {
+                const protocol = preparationProtocols[programHours];
+                if (!protocol) return;
+
+                preparationTitle.textContent = protocol.title;
+                
+                let contentHTML = '';
+                for (const [title, points] of Object.entries(protocol.sections)) {
+                    contentHTML += `
+                        <div>
+                            <h3 class="text-lg font-semibold text-sky-400 mb-2">${title}</h3>
+                            <ul class="list-disc list-inside text-slate-300 space-y-1 pl-2">
+                                ${points.map(p => `<li>${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
+                }
+                
+                const now = new Date();
+                const endTime = new Date(now.getTime() + programHours * 60 * 60 * 1000);
+                const formattedEndTime = endTime.toLocaleString('sk-SK', {
+                    weekday: 'long',
+                    day: 'numeric',
+                    month: 'long',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                }).replace(',', '');
+
+                const endTimeHTML = `
+                    <div class="mt-4 p-4 rounded-lg bg-slate-900/50 border border-slate-700">
+                        <div class="flex items-center gap-3">
+                            <i data-lucide="calendar-check" class="w-5 h-5 text-amber-400 flex-shrink-0"></i>
+                            <div>
+                                <h4 class="font-semibold text-white">Predbežný koniec pôstu:</h4>
+                                <p class="text-amber-400 font-medium">${formattedEndTime}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                preparationContent.innerHTML = contentHTML + endTimeHTML;
+
+                preparationModal.classList.remove('hidden');
+                lucide.createIcons();
+            }
 
 
             function tick() {
@@ -502,7 +615,7 @@
                 }
             }
             
-            function startTimer() {
+            function beginFast() {
                 requestNotificationPermission();
                 setFastState({
                     state: 'running',
@@ -559,7 +672,6 @@
                 setFastState({ state: 'stopped', programHours: lastProgram });
                 updateButtonUI('stopped');
                 
-                // Zobrazí sa modálne okno, takže UI resetujeme až po jeho zatvorení
                 if (!completed) {
                     setTimeout(() => {
                         resetUIToProgram(programHours);
@@ -646,7 +758,6 @@
                 const offset = circumference * (1 - progress);
                 progressCircle.style.strokeDashoffset = offset;
 
-                // Gradient farby
                 const startColor = "#38BDF8"; // Sky 400
                 const endColor = "#FBBF24";   // Amber 400
                 progressCircle.style.stroke = lerpColor(startColor, endColor, progress);
@@ -668,7 +779,6 @@
                 let useHtml = false;
 
                 if (state === 'running' || state === 'paused') {
-                    // --- Logika pre Fázu Pôstu ---
                     if (hoursElapsed < 4) {
                         stage = "Trávenie";
                     } else if (hoursElapsed < 12) {
@@ -683,7 +793,6 @@
                         stage = "Maximálna autofágia";
                     }
 
-                    // --- Logika pre Adaptívny Tip ---
                     const TEN_MINUTES_MS = 10 * 60 * 1000;
                     if (elapsedMs < TEN_MINUTES_MS && startTime > 0) {
                         const endTime = new Date(startTime + programHours * 3600 * 1000);
@@ -694,7 +803,6 @@
                         tip = `<strong>Koniec pôstu:</strong> ${formattedEndTime}`;
                         useHtml = true;
                     } else {
-                        // Bežné adaptívne tipy po 10 minútach
                         if (stage === "Trávenie") {
                             tip = "Telo spracováva posledné jedlo. Hladina cukru je stabilná.";
                         } else if (stage === "Začiatok spaľovania tukov") {
@@ -705,7 +813,7 @@
                             tip = "Začína sa proces bunkovej obnovy. Gratulujeme!";
                         } else if (stage === "Hlboká ketóza") {
                             tip = "Telo je v plnom režime spaľovania tukov. Sledujte príznaky a doplňte elektrolyty.";
-                        } else { // Maximálna autofágia
+                        } else {
                             tip = "Dosahujete maximálne benefity. Pri dlhých pôstoch je kľúčová opatrnosť.";
                         }
                     }
@@ -728,12 +836,78 @@
                 progressCircle.style.strokeDasharray = circumference;
                 progressCircle.style.strokeDashoffset = circumference;
                 restoreTimerState();
+                initializeCookieBanner();
             }
 
+            function initializeCookieBanner() {
+                try {
+                    if (window.jQuery && typeof window.jQuery.fn.ihavecookies === 'function') {
+                        var options = {
+                            box_umisteni:"bottom:0;left:0;",
+                            box_sirka:"100%",
+                            box_odsazeni:"0px",
+                            box_odsazeni_obsah:"20px",
+                            box_zaobleni: "0px",
+                            box_stin_ver:"-5px",
+                            box_stin_roz:"15px",
+                            box_stin_barva:"rgba(0,0,0,0.2)",
+                            pozadi_obrazek:"",
+                            pozadi_barva:"rgb(30, 41, 59)",
+                            title:"Používame súbory cookie",
+                            title_color:"#FFFFFF",
+                            title_size:"18px",
+                            popis:"Naše webové stránky využívajú súbory cookie na zlepšenie vášho zážitku. Súhlasom nám pomáhate analyzovať návštevnosť a personalizovať obsah.",
+                            popis_color:"#CBD5E1",
+                            popis_size:"14px",
+                            odkaz_text:"Viac informácií",
+                            odkaz_url:"https://www.cookie-lista.cz/co-je-cookies.html",
+                            odkaz_color:"#38BDF8",
+                            odkaz_color_hover:"#7DD3FC",
+                            tlacitko_1_text:"Povoliť všetko",
+                            tlacitko_1_padding:"12px 24px",
+                            tlacitko_1_margin:"10px",
+                            tlacitko_1_text_barva:"#0F172A",
+                            tlacitko_1_pozadi:"#38BDF8",
+                            tlacitko_1_text_velikost:"14px",
+                            tlacitko_1_text_barva_hover:"#0F172A",
+                            tlacitko_1_pozadi_hover:"#7DD3FC",
+                            tlacitko_1_radius:"8px",
+                            tlacitko_2_text:"Iba nevyhnutné",
+                            tlacitko_2_padding:"12px 24px",
+                            tlacitko_2_margin:"10px",
+                            tlacitko_2_text_barva:"#E2E8F0",
+                            tlacitko_2_pozadi:"#334155",
+                            tlacitko_2_text_velikost:"14px",
+                            tlacitko_2_text_barva_hover:"#FFFFFF",
+                            tlacitko_2_pozadi_hover:"#475569",
+                            tlacitko_2_radius:"8px",
+                            delay: 1500,
+                            expires: 365,
+                            uncheckBoxes: true,
+                            tvurce: false,
+                        };
+                        $('body').ihavecookies(options);
+                    }
+                } catch (e) {
+                    console.error("Nepodarilo sa inicializovať cookie lištu.", e);
+                }
+            }
+
+
             // --- Event Listeners ---
-            startBtn.addEventListener('click', startTimer);
+            startBtn.addEventListener('click', () => showPreparationModal(selectedProgram));
             pauseBtn.addEventListener('click', pauseTimer);
             stopBtn.addEventListener('click', () => stopTimer(false));
+            
+            startFastConfirmBtn.addEventListener('click', () => {
+                preparationModal.classList.add('hidden');
+                beginFast();
+            });
+
+            cancelFastBtn.addEventListener('click', () => {
+                preparationModal.classList.add('hidden');
+            });
+
             
             menuToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
@@ -757,69 +931,8 @@
         });
     </script>
     
-    <!-- COOKIE LIŠTA v2.0 START -->
-    <script type="text/javascript">
-        var options={
-            // Nastavenie pre plnú šírku na spodnej časti obrazovky
-            box_umisteni:"bottom:0;left:0;",
-            box_sirka:"100%",
-            box_odsazeni:"0px",
-            box_odsazeni_obsah:"20px",
-            box_zaobleni: "0px",
-            box_stin_ver:"-5px",
-            box_stin_roz:"15px",
-            box_stin_barva:"rgba(0,0,0,0.2)",
-            
-            // Vizuálne zladenie s dizajnom stránky
-            pozadi_obrazek:"", // Bez obrázku na pozadí
-            pozadi_barva:"rgb(30, 41, 59)", // Farba pozadia zhodná s kartami (#1E293B)
-            title:"Používame súbory cookie",
-            title_color:"#FFFFFF",
-            title_size:"18px",
-            popis:"Naše webové stránky využívajú súbory cookie na zlepšenie vášho zážitku. Súhlasom nám pomáhate analyzovať návštevnosť a personalizovať obsah.",
-            popis_color:"#CBD5E1",
-            popis_size:"14px",
-            odkaz_text:"Viac informácií",
-            odkaz_url:"https://www.cookie-lista.cz/co-je-cookies.html",
-            odkaz_color:"#38BDF8", // Primárna modrá farba
-            odkaz_color_hover:"#7DD3FC",
-
-            // Primárne tlačidlo (Povoliť všetko)
-            tlacitko_1_text:"Povoliť všetko",
-            tlacitko_1_padding:"12px 24px",
-            tlacitko_1_margin:"10px",
-            tlacitko_1_text_barva:"#0F172A", // Text farba pre primárne tlačidlo
-            tlacitko_1_pozadi:"#38BDF8", // Pozadie primárneho tlačidla
-            tlacitko_1_text_velikost:"14px",
-            tlacitko_1_text_barva_hover:"#0F172A",
-            tlacitko_1_pozadi_hover:"#7DD3FC",
-            tlacitko_1_radius:"8px",
-
-            // Sekundárne tlačidlo (Iba nevyhnutné)
-            tlacitko_2_text:"Iba nevyhnutné",
-            tlacitko_2_padding:"12px 24px",
-            tlacitko_2_margin:"10px",
-            tlacitko_2_text_barva:"#E2E8F0", // Text farba pre sekundárne tlačidlo
-            tlacitko_2_pozadi:"#334155", // Pozadie sekundárneho tlačidla
-            tlacitko_2_text_velikost:"14px",
-            tlacitko_2_text_barva_hover:"#FFFFFF",
-            tlacitko_2_pozadi_hover:"#475569",
-            tlacitko_2_radius:"8px",
-
-            // Ostatné nastavenia
-            delay: 1500,
-            expires: 365,
-            uncheckBoxes: true,
-            tvurce: false,
-        }
-
-    $(document).ready(function() {
-        $('body').ihavecookies(options);
-    });
-    </script>
+    <!-- COOKIE LIŠTA v2.0 START - Inicializácia presunutá do hlavného skriptu -->
     <!-- COOKIE LIŠTA v2.0 KONIEC -->
 </body>
 </html>
-
-
 
