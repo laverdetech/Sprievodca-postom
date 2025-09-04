@@ -83,6 +83,40 @@
         #notification-fallback {
             transition: opacity 0.5s, transform 0.5s;
         }
+
+        /* Animácia kariet pôstu */
+        #programs .grid {
+            transition: gap 0.6s ease-in-out;
+        }
+        .program-card {
+            transition: transform 0.6s ease-in-out, margin-top 0.6s ease-in-out;
+            will-change: transform, margin-top;
+            z-index: 1;
+        }
+        
+        #programs.programs-collapsed .program-card:hover {
+            transform: translateY(-5px) scale(1.03) !important;
+            z-index: 10;
+        }
+        #programs.programs-collapsed .grid {
+            gap: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #programs.programs-collapsed .program-card {
+            transform: scale(0.95);
+            max-width: 400px;
+            width: 100%;
+        }
+        #programs.programs-collapsed .program-card:not(:first-child) {
+            margin-top: -125px;
+        }
+        #programs.programs-collapsed .program-card.selected {
+            transform: scale(1);
+            z-index: 5;
+            box-shadow: 0 10px 30px rgba(56, 189, 248, 0.4);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -333,6 +367,7 @@
             const pauseBtn = document.getElementById('pauseBtn');
             const stopBtn = document.getElementById('stopBtn');
             const programsContainer = document.querySelector('#programs .grid');
+            const programsSection = document.getElementById('programs');
             const notificationFallback = document.getElementById('notification-fallback');
             const menuToggle = document.getElementById('menu-toggle');
             const menuPanel = document.getElementById('menu-panel');
@@ -724,6 +759,7 @@
                 timerInterval = setInterval(tick, 1000);
                 
                 updateButtonUI('running');
+                programsSection.classList.add('programs-collapsed');
                 tick();
             }
 
@@ -766,6 +802,7 @@
                 clearFastState();
                 setFastState({ state: 'stopped', programHours: lastProgram });
                 updateButtonUI('stopped');
+                programsSection.classList.remove('programs-collapsed');
                 
                 if (!completed) {
                     setTimeout(() => {
@@ -785,9 +822,11 @@
                         timerInterval = setInterval(tick, 1000);
                     }
                     updateButtonUI(state.state);
+                    programsSection.classList.add('programs-collapsed');
                 } else {
                     resetUIToProgram(selectedProgram);
                     updateButtonUI('stopped');
+                    programsSection.classList.remove('programs-collapsed');
                 }
                 updateStatusUI();
             }
@@ -1041,6 +1080,7 @@
                 completionModal.classList.add('hidden');
                 const lastProgram = getFastState().programHours;
                 resetUIToProgram(lastProgram);
+                programsSection.classList.remove('programs-collapsed');
             });
 
 
