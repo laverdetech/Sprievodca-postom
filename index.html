@@ -550,6 +550,27 @@
                 }
             }
 
+            // --- Správa počtu dokončených pôstov ---
+            function getCompletionCounts() {
+                try {
+                    const counts = localStorage.getItem('fastCompletionCounts');
+                    return counts ? JSON.parse(counts) : {};
+                } catch (e) {
+                    console.warn("Nepodarilo sa načítať počty dokončených pôstov.", e);
+                    return {};
+                }
+            }
+
+            function incrementCompletionCount(programHours) {
+                try {
+                    const counts = getCompletionCounts();
+                    counts[programHours] = (counts[programHours] || 0) + 1;
+                    localStorage.setItem('fastCompletionCounts', JSON.stringify(counts));
+                } catch (e) {
+                    console.warn("Nepodarilo sa uložiť počet dokončených pôstov.", e);
+                }
+            }
+
             // --- Logika časovača s localStorage (zabezpečená) ---
 
             function getFastState() {
@@ -756,6 +777,7 @@
                 const { programHours } = getFastState();
 
                 if (completed) {
+                    incrementCompletionCount(programHours);
                     showCompletionModal(programHours);
                 } else {
                     fastStage.textContent = "Pôst zastavený";
@@ -809,12 +831,19 @@
             function generateProgramCards() {
                 programsContainer.innerHTML = '';
                 const { state } = getFastState();
+                const completionCounts = getCompletionCounts();
+
                 programsData.forEach(p => {
                     const isSelected = p.id === selectedProgram;
                     const card = document.createElement('div');
-                    card.className = `program-card card rounded-xl p-6 cursor-pointer border-2 ${isSelected ? 'selected' : 'border-transparent'} ${state !== 'stopped' ? 'opacity-50 cursor-not-allowed' : ''}`;
+                    card.className = `relative program-card card rounded-xl p-6 cursor-pointer border-2 ${isSelected ? 'selected' : 'border-transparent'} ${state !== 'stopped' ? 'opacity-50 cursor-not-allowed' : ''}`;
                     card.dataset.duration = p.id;
+                    
+                    const count = completionCounts[p.id] || 0;
+                    const countBadge = count > 0 ? `<div class="absolute top-2 right-2 bg-sky-500 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center border-2 border-slate-800">${count}</div>` : '';
+
                     card.innerHTML = `
+                        ${countBadge}
                         <div class="flex items-center gap-4 mb-3">
                             <div class="bg-slate-700/50 p-3 rounded-lg"><i data-lucide="${p.icon}" class="w-6 h-6 text-sky-400"></i></div>
                             <h3 class="text-xl font-bold text-white">${p.title}</h3>
@@ -1041,6 +1070,7 @@
                 completionModal.classList.add('hidden');
                 const lastProgram = getFastState().programHours;
                 resetUIToProgram(lastProgram);
+                generateProgramCards(); 
             });
 
 
